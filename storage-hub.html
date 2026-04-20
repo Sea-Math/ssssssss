@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Save Sync Hub</title>
+</head>
+<body>
+    <script>
+        // This file acts as the central database for all your sites.
+        // It bypasses the bowser restriction by keeping all saves on one single domain.
+        window.addEventListener('message', function(event) {
+            const msg = event.data;
+            if (!msg || !msg.action) return;
+
+            if (msg.action === 'GET_ALL') {
+                const data = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('hub_save_')) {
+                        data[key] = localStorage.getItem(key);
+                    }
+                }
+                event.source.postMessage({ action: 'SYNC_ALL', data: data }, event.origin);
+            }
+            else if (msg.action === 'SET') {
+                localStorage.setItem(msg.key, msg.value);
+            }
+        });
+    </script>
+</body>
+</html>

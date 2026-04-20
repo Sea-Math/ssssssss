@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>v</title>
+  <style>
+    body, html { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      width: 100%;
+      background: #000; 
+      overflow: hidden; 
+    }
+    
+    #canvas-container { 
+      width: 100%; 
+      height: 100%; 
+      background: #000; /* Black background while proxy loads */
+    }
+    
+    #canvas-container iframe { 
+      display: block; 
+      width: 100%; 
+      height: 100%; 
+      border: none; 
+    }
+
+    #loading-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #7dd3fc;
+      font-family: monospace;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading-text">Starting Sea Bean Engine...</div>
+  <div id="canvas-container"></div>
+
+  <script type="module">
+    async function initAutoProxy() {
+      try {
+        // 1. Dynamically import exactly how seabeansearch.html does it
+        const [canvasModule, clientModule] = await Promise.all([
+          import('./shader-canvas.js'),
+          import('./shader-client.js')
+        ]);
+        
+        const ShaderCanvas = canvasModule.ShaderCanvas;
+        
+        // 2. Initialize the Canvas onto our container
+        const canvas = new ShaderCanvas('canvas-container');
+        
+        // 3. Create the tab/surface IMMEDIATELY (like the original code does)
+        const id = canvas.createSurface();
+        canvas.switchSurface(id);
+
+        // 4. Wait for the engine to declare it is ready, then navigate
+        canvas.on(ShaderCanvas.EVENTS.READY, () => {
+          document.getElementById('loading-text').style.display = 'none';
+          
+          // 🔴 PUT YOUR TARGET URL HERE 🔴
+          canvas.navigate('https://latte-x.neocities.org');
+        });
+
+        // Optional: Catch errors to display on screen instead of failing silently
+        canvas.on(ShaderCanvas.EVENTS.ERROR, (e) => {
+          document.getElementById('loading-text').innerText = "Proxy Error: " + e;
+          document.getElementById('loading-text').style.color = "red";
+        });
+
+      } catch (e) {
+        document.getElementById('loading-text').innerText = "Module Error: " + e.message + " (Are you running this on a web server?)";
+        document.getElementById('loading-text').style.color = "red";
+      }
+    }
+
+    initAutoProxy();
+  </script>
+
+</body>
+</html>

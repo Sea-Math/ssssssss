@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Deep Sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" id="favicon" href="">
+   <link rel="stylesheet" href="css/home.css"/>
+</head>
+<body>
+
+    <div class="hero-container">
+        <h1 class="main-title">SEA BEAN</h1>
+        <div class="random-subtitle" id="subtitleText">Loading deep sea data...</div>
+        <img id="randomImage" src="" alt="Sea Bean Easter Egg">
+    </div>
+
+    <div class="wave-wrapper">
+        <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+            </defs>
+            <g class="parallax" id="homeWaveParallax">
+                <use href="#gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.7" />
+                <use href="#gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.5" />
+                <use href="#gentle-wave" x="48" y="5" fill="var(--accent-dark)" opacity="0.3" />
+                <use href="#gentle-wave" x="48" y="7" fill="var(--accent-dark)" />
+            </g>
+        </svg>
+    </div>
+
+    <div id="themeGridContainer" style="display: none;"></div>
+    <div id="themeTransitionOverlay" style="display: none;"><div id="themeWaveContainer"><g id="themeWaveParallax"></g></div></div>
+
+   <script src="js/home.js"></script>
+    <script src="/theme.js"></script>
+    <script src="/security.js"></script>
+</body>
+</html>

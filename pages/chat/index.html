@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DarkChat V5.2 - Core</title>
+  <style>
+    :root {
+      --bg-base: #000000;
+      --bg-sidebar: #050505;
+      --bg-chat: #0a0a0a;
+      --bg-input: #000000;
+      --bg-hover: #1a1a1a;
+      --text-main: #ffffff;
+      --text-muted: #999999;
+      --border-line: #ffffff;
+      --accent: #ffffff;
+      --danger: #ff3333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+    .hidden { display: none !important; }
+    
+    .icon { display: inline-block; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; transition: 0.2s; opacity: 0.7; }
+    .icon:hover { opacity: 1; }
+    .icon-hash { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='4' y1='9' x2='20' y2='9'/%3E%3Cline x1='4' y1='15' x2='20' y2='15'/%3E%3Cline x1='10' y1='3' x2='8' y2='21'/%3E%3Cline x1='16' y1='3' x2='14' y2='21'/%3E%3C/svg%3E"); }
+    .icon-msg { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E"); }
+    .icon-plus { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
+    .icon-x { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E"); opacity: 1; }
+    .icon-bell { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/%3E%3Cpath d='M13.73 21a2 2 0 0 1-3.46 0'/%3E%3C/svg%3E"); position: relative;}
+    .icon-user-plus { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='8.5' cy='7' r='4'/%3E%3Cline x1='20' y1='8' x2='20' y2='14'/%3E%3Cline x1='23' y1='11' x2='17' y2='11'/%3E%3C/svg%3E");}
+    .icon-gear { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E"); }
+    .icon-image { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E"); }
+
+    input, select, textarea { width: 100%; padding: 12px 16px; margin-bottom: 16px; background: var(--bg-input); border: 1px solid var(--border-line); color: white; outline: none; font-size: 15px; }
+    input:focus { background: var(--bg-hover); }
+    button { width: 100%; padding: 12px; border: 1px solid var(--border-line); cursor: pointer; font-weight: bold; font-size: 15px; background: var(--text-main); color: var(--bg-base); margin-bottom: 10px; transition: 0.2s;}
+    button:hover { background: var(--bg-hover); color: var(--text-main); }
+    button.alt { background: transparent; color: var(--text-main); }
+    
+    .role-badge { font-size: 10px; padding: 3px 6px; border-radius: 2px; font-weight: 800; text-transform: uppercase; margin-left: 8px; border: 1px solid white;}
+    
+    #app-container { display: flex; width: 100vw; height: 100vh; }
+    .sidebar { width: 280px; background: var(--bg-sidebar); border-right: 1px solid var(--border-line); display: flex; flex-direction: column; }
+    .sidebar-header { padding: 20px; font-weight: bold; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid var(--border-line); display:flex; justify-content:space-between; align-items:center;}
+    .channel-list { flex: 1; overflow-y: auto; padding: 16px 12px; }
+    .channel-item { padding: 10px 12px; margin-bottom: 4px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 12px; font-size: 15px; transition: 0.2s;}
+    .channel-item:hover { background: var(--bg-hover); color: var(--text-main); }
+    .channel-item.active { background: var(--text-main); color: var(--bg-base); font-weight: bold; }
+    .channel-item.active .icon { filter: invert(1); opacity: 1; }
+    
+    .user-controls { border-top: 1px solid var(--border-line); padding: 16px; display: flex; align-items: center; gap: 10px; }
+    .my-avatar { width: 36px; height: 36px; object-fit: cover; border: 1px solid var(--border-line); }
+    .my-username { flex: 1; font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 10px; font-weight: bold; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
+
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); }
+    .chat-header { padding: 20px; border-bottom: 1px solid var(--border-line); display: flex; align-items: center; justify-content: space-between; font-weight: bold; font-size: 16px; }
+    .messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 24px; }
+    .message { display: flex; gap: 16px; max-width: 80%; }
+    .message.own { align-self: flex-end; flex-direction: row-reverse; }
+    .message.own .msg-header { justify-content: flex-end; }
+    .message.own .msg-text { background: rgba(255,255,255,0.1); border: 1px solid var(--border-line); padding: 10px 14px; border-radius: 4px; }
+    .msg-avatar { width: 44px; height: 44px; object-fit: cover; border: 1px solid var(--border-line); }
+    .msg-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+    .msg-author { font-weight: bold; font-size: 15px; color: white; }
+    .msg-time { font-size: 12px; color: var(--text-muted); }
+    .msg-text { font-size: 15px; line-height: 1.5; color: var(--text-main); word-wrap: break-word;}
+    .chat-img-attachment { max-width: 300px; max-height: 300px; border: 1px solid var(--border-line); margin-top: 8px; display: block;}
+    
+    .input-wrapper { padding: 0 30px 30px 30px; }
+    .input-box { background: var(--bg-input); border: 1px solid var(--border-line); display: flex; align-items: center; padding: 0 16px; gap: 10px;}
+    .input-box input { margin: 0; border: none; background: transparent; padding: 18px 0; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; }
+    .modal { background: var(--bg-chat); padding: 32px; width: 450px; border: 1px solid var(--border-line); max-height: 80vh; display: flex; flex-direction: column;}
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
+    
+    .search-results { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .user-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid var(--border-line); cursor: pointer; }
+    .user-card:hover { background: var(--bg-hover); }
+    .user-card img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid white; margin-right: 12px;}
+    
+    .annc-card { border: 1px solid var(--border-line); padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.05); }
+    .annc-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; text-transform: uppercase;}
+    .annc-body { font-size: 13px; color: var(--text-muted); }
+
+    .settings-fullscreen { position: fixed; inset: 0; background: var(--bg-base); display: flex; z-index: 200; }
+    .settings-sidebar { width: 30%; background: var(--bg-sidebar); border-right: 1px solid var(--border-line); display: flex; flex-direction: column; align-items: flex-end; padding: 60px 20px 20px 20px; }
+    .settings-nav-item { padding: 10px 20px; color: var(--text-muted); font-weight: bold; font-size: 16px; cursor: pointer; width: 200px; text-align: left; transition: 0.2s; margin-bottom: 4px; }
+    .settings-nav-item:hover { background: var(--bg-hover); color: white; }
+    .settings-nav-item.active { background: var(--bg-hover); color: white; border-left: 2px solid white; }
+    .settings-nav-item.danger-text { color: var(--danger); margin-top: 20px; }
+    .settings-content-area { flex: 1; padding: 60px; position: relative; }
+    .settings-content-area h2 { margin-bottom: 30px; font-size: 24px; text-transform: uppercase; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
+    .settings-card { background: var(--bg-chat); border: 1px solid var(--border-line); padding: 30px; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+    .settings-close-btn { position: absolute; top: 60px; right: 60px; display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 5px; color: var(--text-muted); font-weight: bold; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <div id="login-screen" class="modal-backdrop">
+    <div class="modal">
+      <h2 id="auth-title" style="margin-bottom:20px; text-align:center;">System Access</h2>
+      <input type="text" id="auth-username" placeholder="Username (Unique ID)">
+      <input type="password" id="auth-pass" placeholder="Password">
+      <button id="btn-submit-auth">Authenticate</button>
+      <button id="btn-toggle-auth" class="alt">Create an account instead</button>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="settings-fullscreen hidden">
+    <div class="settings-sidebar">
+      <div class="settings-nav-item active">My Account</div>
+      <div class="settings-nav-item danger-text" id="btn-logout">Log Out</div>
+    </div>
+    <div class="settings-content-area">
+      <div class="settings-close-btn" id="close-settings">
+        <div class="icon icon-x"></div><span>ESC</span>
+      </div>
+      <h2>My Account</h2>
+      <div class="settings-card">
+        <div style="display:flex; gap: 20px; align-items: center; border-bottom: 1px solid var(--border-line); padding-bottom: 20px;">
+          <img id="set-avatar-preview" style="width: 80px; height: 80px; border: 1px solid white; object-fit: cover;" src="">
+          <div>
+            <h3 id="set-username-display" style="margin-bottom: 5px;">Username</h3>
+            <button class="alt" style="border:1px solid white; padding: 6px 12px; font-size:12px; margin:0;" onclick="document.getElementById('avatar-upload').click()">Change Avatar</button>
+            <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+          </div>
+        </div>
+        <label style="font-size: 12px; font-weight: bold; text-transform: uppercase;">Display Name</label>
+        <input type="text" id="set-display-name" style="margin-bottom: 0;">
+        <button id="btn-save-settings" style="margin-top: 20px;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="action-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="margin:0; font-size: 14px;" id="action-modal-title">Create / Find</h3>
+        <div class="icon icon-x" id="close-action-modal"></div>
+      </div>
+      
+      <div id="create-group-section" style="border: 1px solid var(--border-line); padding: 15px; margin-bottom: 20px;">
+        <h4 style="margin-bottom: 10px; font-size: 13px;">NEW GROUP</h4>
+        <input type="text" id="create-group-name" placeholder="Group Name">
+        <button id="btn-create-group" style="margin: 0;">Create Room</button>
+      </div>
+
+      <h4 style="margin-bottom: 10px; font-size: 13px;" id="search-section-title">DIRECT MESSAGES</h4>
+      <input type="text" id="user-search-input" placeholder="Search by username...">
+      <div class="search-results" id="search-results-box"></div>
+    </div>
+  </div>
+
+  <div id="notif-modal" class="modal-backdrop hidden">
+    <div class="modal" style="width: 500px;">
+      <div class="modal-header">
+        <h3 style="margin:0; font-size: 14px;">Network Activity</h3>
+        <div class="icon icon-x" id="close-notif"></div>
+      </div>
+      
+      <h4 style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px; border-bottom:1px solid #333; padding-bottom:5px;">GROUP INVITES</h4>
+      <div id="invites-list" class="search-results" style="max-height: 150px;"></div>
+
+      <h4 style="font-size: 12px; color: var(--text-muted); margin: 20px 0 10px 0; border-bottom:1px solid #333; padding-bottom:5px;">SYSTEM ANNOUNCEMENTS</h4>
+      <div id="annc-list" class="search-results" style="max-height: 250px;"></div>
+    </div>
+  </div>
+
+  <div id="app-container" class="hidden">
+    
+    <div class="sidebar">
+      <div class="sidebar-header">
+        Relays <div class="icon icon-plus" id="btn-open-create" title="New Chat"></div>
+      </div>
+      <div class="channel-list" id="room-list"></div>
+      
+      <div class="user-controls">
+        <img id="my-avatar" class="my-avatar" src="">
+        <div class="my-username" id="my-username">Loading...</div>
+        
+        <div class="icon icon-gear" id="btn-open-settings" title="Settings"></div>
+        <div style="position:relative;">
+          <div class="icon icon-bell" id="btn-notifications">
+            <span id="notif-count" class="notif-badge hidden">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="chat-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="icon icon-hash" style="opacity: 1;"></div>
+          <span id="current-room-name">global-relay</span>
+        </div>
+        <div class="icon icon-user-plus hidden" id="btn-invite-to-group" title="Invite User to Group"></div>
+      </div>
+      
+      <div class="messages" id="messages-container"></div>
+      
+      <div class="input-wrapper">
+        <input type="file" id="chat-img-upload" accept="image/*" class="hidden">
+        <div class="input-box">
+          <div class="icon icon-image" id="btn-upload-chat-img" title="Send Image"></div>
+          <input type="text" id="msg-input" placeholder="Transmit...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, doc, getDoc, getDocs, where, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCXgdfhs1vynsb1IPzvacqMYqebegdlj_k",
+  authDomain: "dark-chat-17495.firebaseapp.com",
+  projectId: "dark-chat-17495",
+  storageBucket: "dark-chat-17495.firebasestorage.app",
+  messagingSenderId: "1084197459463",
+  appId: "1:1084197459463:web:d73e44d04361b590cafca2",
+  measurementId: "G-TTGE5VPW5N"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let globalMyData = null;
+    let currentRoomId = "global";
+    let isLoginMode = true;
+    let inviteModeRoomId = null; 
+    let unsubProfile = null;
+    let pendingAvatarBase64 = null;
+    let unsubMessages = null;
+    
+    function compressImage(file, maxWidth, callback) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+      };
+    }
+
+    document.getElementById('btn-toggle-auth').addEventListener('click', () => {
+      isLoginMode = !isLoginMode;
+      document.getElementById('auth-title').textContent = isLoginMode ? "System Access" : "Register ID";
+      document.getElementById('btn-submit-auth').textContent = isLoginMode ? "Authenticate" : "Create Registration";
+    });
+
+    document.getElementById('btn-submit-auth').addEventListener('click', async () => {
+      const username = document.getElementById('auth-username').value.trim().toLowerCase();
+      const pass = document.getElementById('auth-pass').value;
+      if (!username || pass.length < 6) return alert("Valid Username and Password (6+ chars) required.");
+      
+      try {
+        if (isLoginMode) {
+          await signInWithEmailAndPassword(auth, `${username}@darkchat.network`, pass);
+        } else {
+          const cred = await createUserWithEmailAndPassword(auth, `${username}@darkchat.network`, pass);
+          await setDoc(doc(db, "users", cred.user.uid), {
+            uid: cred.user.uid, username: username, displayName: username, role: "none", 
+            photoURL: `https://ui-avatars.com/api/?name=${username}&background=000&color=fff&border=1`
+          });
+        }
+      } catch (error) { alert("AUTH ERROR: " + error.message); }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        
+        initializeProfileTracker();
+        initializeRooms();
+        initializeNotifications();
+        loadChatStream('global', 'global-relay', 'group');
+      } else {
+        currentUser = null;
+        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+      }
+    });
+
+    function initializeProfileTracker() {
+      if (unsubProfile) unsubProfile();
+      unsubProfile = onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          globalMyData = docSnap.data();
+          document.getElementById('my-avatar').src = globalMyData.photoURL;
+          document.getElementById('my-username').textContent = globalMyData.displayName;
+          document.getElementById('set-username-display').textContent = globalMyData.username;
+          document.getElementById('set-display-name').value = globalMyData.displayName;
+          document.getElementById('set-avatar-preview').src = globalMyData.photoURL;
+        }
+      });
+    }
+
+    document.getElementById('btn-open-settings').addEventListener('click', () => document.getElementById('settings-modal').classList.remove('hidden'));
+    document.getElementById('close-settings').addEventListener('click', () => document.getElementById('settings-modal').classList.add('hidden'));
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+    document.getElementById('avatar-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        compressImage(file, 200, (base64String) => {
+          pendingAvatarBase64 = base64String;
+          document.getElementById('set-avatar-preview').src = base64String;
+        });
+      }
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', async () => {
+      const updateData = { displayName: document.getElementById('set-display-name').value };
+      if (pendingAvatarBase64) updateData.photoURL = pendingAvatarBase64;
+      await setDoc(doc(db, "users", currentUser.uid), updateData, { merge: true });
+      document.getElementById('settings-modal').classList.add('hidden');
+    });
+
+    document.getElementById('invites-list').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-accept')) {
+        const invId = e.target.getAttribute('data-id');
+        const roomId = e.target.getAttribute('data-room');
+        
+        const roomSnap = await getDoc(doc(db, "rooms", roomId));
+        let roomName = "Group";
+        if (roomSnap.exists()) {
+            roomName = roomSnap.data().name;
+        }
+
+        await updateDoc(doc(db, "invites", invId), { status: 'accepted' });
+        await updateDoc(doc(db, "rooms", roomId), { members: arrayUnion(currentUser.uid) });
+        
+        document.getElementById('notif-modal').classList.add('hidden');
+        loadChatStream(roomId, roomName, 'group');
+
+      } else if (e.target.classList.contains('btn-decline')) {
+        const invId = e.target.getAttribute('data-id');
+        await updateDoc(doc(db, "invites", invId), { status: 'declined' });
+      }
+    });
+
+    function initializeNotifications() {
+      const qInvites = query(collection(db, "invites"), where("receiverId", "==", currentUser.uid), where("status", "==", "pending"));
+      onSnapshot(qInvites, (snap) => {
+        const list = document.getElementById('invites-list');
+        list.innerHTML = '';
+        let count = 0;
+        
+        if (snap.empty) { 
+          list.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">No pending invites.</div>'; 
+        }
+        
+        snap.forEach(docSnap => {
+          count++;
+          const inv = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'user-card';
+          div.innerHTML = `
+            <div style="font-size:13px;">Invite to: <strong>${inv.roomName}</strong></div>
+            <div style="display:flex; gap:5px;">
+              <button class="btn-accept" data-id="${docSnap.id}" data-room="${inv.roomId}" style="margin:0; padding:6px; font-size:11px; width:auto;">Accept</button>
+              <button class="btn-decline alt" data-id="${docSnap.id}" style="margin:0; padding:6px; font-size:11px; width:auto; border:1px solid white;">Decline</button>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+
+        const badge = document.getElementById('notif-count');
+        if (count > 0) { 
+          badge.textContent = count; 
+          badge.classList.remove('hidden'); 
+        } else { 
+          badge.classList.add('hidden'); 
+        }
+      });
+
+      const qAnnc = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+      onSnapshot(qAnnc, (snap) => {
+        const list = document.getElementById('annc-list');
+        list.innerHTML = '';
+        if(snap.empty) list.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">No system announcements.</div>';
+        snap.forEach(docSnap => {
+          const annc = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'annc-card';
+          div.innerHTML = `<div class="annc-title">${annc.title}</div><div class="annc-body">${annc.message}</div>`;
+          list.appendChild(div);
+        });
+      });
+    }
+
+    document.getElementById('btn-notifications').addEventListener('click', () => {
+      document.getElementById('notif-modal').classList.remove('hidden');
+    });
+    document.getElementById('close-notif').addEventListener('click', () => document.getElementById('notif-modal').classList.add('hidden'));
+
+    function initializeRooms() {
+      const q = query(collection(db, "rooms"), where("members", "array-contains", currentUser.uid));
+      onSnapshot(q, (snap) => {
+        const roomList = document.getElementById('room-list');
+        roomList.innerHTML = `<div class="channel-item ${currentRoomId === 'global' ? 'active' : ''}" data-id="global" data-type="group"><div class="icon icon-hash"></div> global-relay</div>`;
+        
+        snap.forEach(docSnap => {
+          const room = docSnap.data();
+          const isDM = room.type === 'dm';
+          const icon = isDM ? 'icon-msg' : 'icon-hash';
+          
+          const div = document.createElement('div');
+          div.className = `channel-item ${currentRoomId === docSnap.id ? 'active' : ''}`;
+          div.dataset.id = docSnap.id;
+          div.dataset.type = room.type;
+          div.innerHTML = `<div class="icon ${icon}"></div> ${room.name}`;
+          roomList.appendChild(div);
+        });
+        
+        document.querySelectorAll('.channel-item').forEach(el => {
+          el.addEventListener('click', (e) => loadChatStream(e.currentTarget.dataset.id, e.currentTarget.innerText.trim(), e.currentTarget.dataset.type));
+        });
+      });
+    }
+
+    document.getElementById('btn-open-create').addEventListener('click', () => {
+      inviteModeRoomId = null; 
+      document.getElementById('action-modal-title').innerText = "Create / Find";
+      document.getElementById('create-group-section').classList.remove('hidden');
+      document.getElementById('search-section-title').innerText = "DIRECT MESSAGES";
+      document.getElementById('action-modal').classList.remove('hidden');
+      document.getElementById('user-search-input').value = '';
+      document.getElementById('search-results-box').innerHTML = '';
+    });
+
+    document.getElementById('btn-invite-to-group').addEventListener('click', () => {
+      inviteModeRoomId = currentRoomId;
+      document.getElementById('action-modal-title').innerText = "Invite to Group";
+      document.getElementById('create-group-section').classList.add('hidden');
+      document.getElementById('search-section-title').innerText = "SEARCH USERS TO INVITE";
+      document.getElementById('action-modal').classList.remove('hidden');
+      document.getElementById('user-search-input').value = '';
+      document.getElementById('search-results-box').innerHTML = '';
+    });
+
+    document.getElementById('close-action-modal').addEventListener('click', () => document.getElementById('action-modal').classList.add('hidden'));
+
+    document.getElementById('btn-create-group').addEventListener('click', async () => {
+      const name = document.getElementById('create-group-name').value.trim();
+      if (!name) return;
+      try {
+        const newRoom = await addDoc(collection(db, "rooms"), {
+          name: name, type: 'group', members: [currentUser.uid], createdAt: serverTimestamp()
+        });
+        document.getElementById('action-modal').classList.add('hidden');
+        loadChatStream(newRoom.id, name, 'group');
+      } catch (err) { alert(err.message); }
+    });
+
+    document.getElementById('user-search-input').addEventListener('input', async (e) => {
+      const qText = e.target.value.trim().toLowerCase();
+      const resultsBox = document.getElementById('search-results-box');
+      resultsBox.innerHTML = '';
+      if (!qText) return;
+
+      const q = query(collection(db, "users"), where("username", ">=", qText), where("username", "<=", qText + '\uf8ff'));
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const user = docSnap.data();
+        if (user.uid === currentUser.uid) return;
+
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `<div style="display:flex; align-items:center;"><img src="${user.photoURL}"> <div><strong>${user.displayName}</strong><br><span style="color:var(--text-muted); font-size:12px;">@${user.username}</span></div></div>`;
+        
+        div.addEventListener('click', async () => {
+          if (inviteModeRoomId) {
+            await addDoc(collection(db, "invites"), {
+              roomId: inviteModeRoomId,
+              roomName: document.getElementById('current-room-name').innerText,
+              receiverId: user.uid,
+              status: 'pending'
+            });
+            alert(`Invite sent to ${user.username}`);
+            document.getElementById('action-modal').classList.add('hidden');
+          } else {
+            const dmId = currentUser.uid < user.uid ? `${currentUser.uid}_${user.uid}` : `${user.uid}_${currentUser.uid}`;
+            await setDoc(doc(db, "rooms", dmId), {
+              name: `DM`, 
+              type: 'dm',
+              members: [currentUser.uid, user.uid]
+            }, { merge: true });
+
+            document.getElementById('action-modal').classList.add('hidden');
+            loadChatStream(dmId, `@${user.username}`, 'dm');
+          }
+        });
+        resultsBox.appendChild(div);
+      });
+    });
+
+    function loadChatStream(roomId, roomName, type) {
+      if (unsubMessages) unsubMessages(); 
+      currentRoomId = roomId;
+      document.getElementById('current-room-name').textContent = roomName;
+      
+      if(type === 'group' && roomId !== 'global') {
+        document.getElementById('btn-invite-to-group').classList.remove('hidden');
+      } else {
+        document.getElementById('btn-invite-to-group').classList.add('hidden');
+      }
+
+      document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+      const activeEl = document.querySelector(`.channel-item[data-id="${roomId}"]`);
+      if(activeEl) activeEl.classList.add('active');
+
+      const msgBox = document.getElementById('messages-container');
+      msgBox.innerHTML = '';
+
+      const q = query(collection(db, `rooms/${roomId}/messages`), orderBy("timestamp", "asc"));
+      unsubMessages = onSnapshot(q, async (snap) => {
+        for (const change of snap.docChanges()) {
+          if (change.type === "added") {
+            const data = change.doc.data();
+            const senderSnap = await getDoc(doc(db, "users", data.senderId));
+            const senderData = senderSnap.exists() ? senderSnap.data() : { displayName: "SYSTEM", photoURL: "", role: "none" };
+            
+            const isOwn = data.senderId === currentUser.uid;
+            let roleBadge = senderData.role && senderData.role !== 'none' ? `<span class="role-badge" style="border-color:${senderData.role==='owner'?'gold':'white'}">${senderData.role}</span>` : '';
+
+            const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="chat-img-attachment">` : '';
+            const textHtml = data.text ? `<div>${data.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>` : '';
+
+            const div = document.createElement('div');
+            div.className = `message ${isOwn ? 'own' : ''}`;
+            div.innerHTML = `
+              <img src="${senderData.photoURL}" class="msg-avatar">
+              <div style="flex:1;">
+                <div class="msg-header">
+                  <span class="msg-author">${senderData.displayName} ${roleBadge}</span>
+                </div>
+                <div class="msg-text">${textHtml} ${imgHtml}</div>
+              </div>
+            `;
+            msgBox.appendChild(div);
+          }
+        }
+        msgBox.scrollTop = msgBox.scrollHeight;
+      });
+    }
+
+    document.getElementById('msg-input').addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        const text = e.target.value.trim();
+        if (!text) return;
+        e.target.value = '';
+        await addDoc(collection(db, `rooms/${currentRoomId}/messages`), {
+          text: text, senderId: currentUser.uid, timestamp: serverTimestamp()
+        });
+      }
+    });
+
+    document.getElementById('btn-upload-chat-img').addEventListener('click', () => document.getElementById('chat-img-upload').click());
+    
+    document.getElementById('chat-img-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        compressImage(file, 800, async (base64String) => {
+          await addDoc(collection(db, `rooms/${currentRoomId}/messages`), {
+            text: "",
+            imageUrl: base64String,
+            senderId: currentUser.uid,
+            timestamp: serverTimestamp()
+          });
+          e.target.value = ''; 
+        });
+      }
+    });
+  </script>
+</body>
+</html>

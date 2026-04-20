@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Deep Sea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" id="favicon" href="">
+    <style>
+        /* --- DYNAMIC THEME VARIABLES --- */
+        :root { 
+            --accent: #00d2ff; 
+            --accent-dark: #0077ff;
+            --bg-deep: #000814; 
+            --bg-light: #001f3f;
+            --text-muted: #8da4c4;
+        }
+
+        html, body {
+            background-color: var(--bg-deep) !important;
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+
+        body { 
+            background: radial-gradient(circle at center, var(--bg-light), var(--bg-deep));
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero-container {
+            z-index: 10;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: -10vh;
+        }
+
+        .main-title {
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 12px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent-dark);
+        }
+
+        .random-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 30px;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        /* --- RANDOM IMAGE --- */
+        #randomImage {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 16px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: none; /* Hidden by default */
+            object-fit: cover;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- WAVES --- */
+        .wave-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 15vh;
+            min-height: 100px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .svg-waves { width: 100%; height: 100%; }
+        .parallax > use { animation: move-forever 20s cubic-bezier(.55,.5,.45,.5) infinite; }
+        .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
+        .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
+        .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
+        .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
+
+        @keyframes move-forever { 0% { transform: translate3d(-90px,0,0); } 100% { transform: translate3d(85px,0,0); } }
+    </style>
+</head>
+<body>
+
+    <div class="hero-container">
+        <h1 class="main-title">SEA BEAN</h1>
+        <div class="random-subtitle" id="subtitleText">Loading deep sea data...</div>
+        <img id="randomImage" src="" alt="Sea Bean Easter Egg">
+    </div>
+
+    <div class="wave-wrapper">
+        <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+            </defs>
+            <g class="parallax" id="homeWaveParallax">
+                <use href="#gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.7" />
+                <use href="#gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.5" />
+                <use href="#gentle-wave" x="48" y="5" fill="var(--accent-dark)" opacity="0.3" />
+                <use href="#gentle-wave" x="48" y="7" fill="var(--accent-dark)" />
+            </g>
+        </svg>
+    </div>
+
+    <div id="themeGridContainer" style="display: none;"></div>
+    <div id="themeTransitionOverlay" style="display: none;"><div id="themeWaveContainer"><g id="themeWaveParallax"></g></div></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const contentOptions = [
+                { text: "love ya sis", image: null },
+                { text: "10,000 leagues under the school network.", image: null },
+                
+
+                
+            ];
+
+
+            const selectedOption = contentOptions[Math.floor(Math.random() * contentOptions.length)];
+
+
+            document.getElementById("subtitleText").innerText = selectedOption.text;
+
+  
+            if (selectedOption.image !== null) {
+                const imgElement = document.getElementById("randomImage");
+                imgElement.src = selectedOption.image;
+                imgElement.style.display = "block"; 
+            }
+        });
+
+
+        window.createSplash = function() {};
+    </script>
+
+    <script src="theme.js"></script>
+    <script src="security.js"></script>
+</body>
+</html>

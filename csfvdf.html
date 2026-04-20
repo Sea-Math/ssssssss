@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sea Bean</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com">
+    
+    <link rel="icon" type="image/jpeg" href="mathpunch.jpeg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    
+    <script src="theme.js"></script>
+    <script src="/sail/baremux/index.js"></script>
+    <script src="/sail/scram/scramjet.all.js"></script>
+    
+    <script type="module" src="shader-client.js"></script>
+    <script type="module" src="shader-canvas.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("/sail/sw.js", { scope: '/sail/' })
+                .catch(err => console.warn('Service Worker registration failed:', err));
+        }
+    </script>
+
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    
+    <style>
+        :root {
+            --bg-base: var(--bg-deep, #0f111a);
+            --bg-panel: var(--bg-light, #1a1d27);
+            --bg-element: var(--sidebar-bg, #232838);
+            --bg-element-hover: rgba(255, 255, 255, 0.08);
+            --accent-blue: var(--accent, #3b82f6);
+            --accent-blue-dim: var(--accent-dark, rgba(59, 130, 246, 0.15));
+            --text-primary: var(--text-heading, #e2e8f0);
+            --text-muted: var(--text-muted, #64748b);
+            --border-color: var(--glass-border, #2a3149);
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0; 
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 12px;
+            gap: 12px;
+            transition: background-color 0.4s ease;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 4px;
+        }
+
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+        
+        .tabs-container::-webkit-scrollbar { height: 4px; }
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .tab {
+            background: var(--bg-element);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 140px;
+            max-width: 220px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+        }
+        
+        .tab:hover { background: var(--bg-element-hover); }
+        .tab.active {
+            background: var(--accent-blue-dim);
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab-title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .tab-close {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s, background 0.2s;
+        }
+        
+        .tab-close:hover {
+            opacity: 1;
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .loader {
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .icon-btn {
+            background: var(--bg-element);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .icon-btn:hover {
+            background: var(--bg-element-hover);
+            color: var(--text-primary);
+        }
+        
+        .icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 4px;
+        }
+
+        .url-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-element);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0 16px;
+            height: 38px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .url-bar:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px var(--accent-blue-dim);
+        }
+        
+        .url-bar svg {
+            width: 16px;
+            height: 16px; 
+            fill: var(--text-muted); 
+            margin-right: 12px;
+        }
+        
+        .url-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        .bookmark-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 4px 8px;
+            overflow-x: auto;
+        }
+        
+        .bookmark-bar::-webkit-scrollbar { display: none; }
+        
+        .bookmark-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+        
+        .bookmark-item:hover {
+            color: var(--text-primary);
+            background: var(--bg-element-hover);
+        }
+        
+        .bookmark-item img {
+            width: 14px;
+            height: 14px; 
+            border-radius: 2px;
+        }
+
+        .main-content {
+            flex: 1;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.2);
+            transition: background-color 0.4s ease;
+        }
+
+        .browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+            display: block;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas-container iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .new-tab-ui {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, var(--bg-element) 0%, var(--bg-panel) 70%);
+            z-index: 10;
+        }
+        
+        .clock-container {
+            display: flex;
+            align-items: baseline;
+            user-select: none;
+        }
+        
+        .clock-time {
+            font-size: 8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: -2px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0; 
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 2000;
+        }
+        
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); 
+            width: 450px; 
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-group label { 
+            display: block; 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            margin-bottom: 8px; 
+        }
+        
+        .form-group select, .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px; 
+            background: var(--bg-element); 
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm); 
+            color: var(--text-primary); 
+            outline: none; 
+            font-size: 14px;
+        }
+        
+        .form-group select:focus, .form-group input[type="text"]:focus { 
+            border-color: var(--accent-blue); 
+        }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+        
+        .btn { 
+            padding: 8px 16px; 
+            border-radius: var(--radius-sm); 
+            font-size: 13px; 
+            font-weight: 500;
+            cursor: pointer; 
+            border: none; 
+        }
+        
+        .btn-cancel { 
+            background: transparent; 
+            color: var(--text-muted);
+            border: 1px solid var(--border-color); 
+        }
+        
+        .btn-cancel:hover { 
+            background: var(--bg-element); 
+            color: var(--text-primary); 
+        }
+        
+        .btn-primary { background: var(--accent-blue); color: var(--bg-base); }
+        .btn-primary:hover { filter: brightness(1.1); }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px !important;
+            color: var(--text-primary) !important;
+            cursor: pointer;
+        }
+        
+        .checkbox-label input { width: 16px; height: 16px; cursor: pointer; }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .status-dot.checking { 
+            background-color: #fbbf24; 
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+        }
+        .status-dot.online { 
+            background-color: #22c55e; 
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+        .status-dot.offline { 
+            background-color: #ef4444; 
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+
+<body x-data="browserApp()">
+
+    <div class="header">
+        <div class="tabs-container" x-ref="tabsContainer">
+            <template x-for="tab in tabs" :key="tab.id">
+                <div class="tab" :class="{ 'active': activeTabId === tab.id }" @click="activateTab(tab.id)">
+                    <template x-if="tab.isLoading">
+                        <div class="loader"></div>
+                    </template>
+                    <template x-if="!tab.isLoading">
+                        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </template>
+                    <span class="tab-title" x-text="tab.title || 'New Tab'"></span>
+                    <span class="tab-close" @click.stop="closeTab(tab.id)">×</span>
+                </div>
+            </template>
+        </div>
+        <button class="icon-btn" @click="addTab()" title="New Tab">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </button>
+    </div>
+
+    <div class="toolbar">
+        <button class="icon-btn" @click="goBack()" title="Back">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+        </button>
+        <button class="icon-btn" @click="goForward()" title="Forward">
+            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path></svg>
+        </button>
+        <button class="icon-btn" @click="reloadTab()" title="Reload">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.24 4.94 14.24 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>
+        </button>
+        
+        <div class="url-bar">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+            <form @submit.prevent="submitUrl()" style="flex:1; display:flex;">
+                <input type="text" id="main-url-input" x-model="urlInput" placeholder="Search with Brave or enter URL" @focus="$event.target.select()" />
+            </form>
+        </div>
+
+        <button class="icon-btn" @click="openInAboutBlank()" title="Open in about:blank">
+            <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </button>
+
+        <button class="icon-btn" @click="showSettings = true" title="Settings">
+            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+        </button>
+    </div>
+
+    <div class="bookmark-bar">
+        <template x-for="bookmark in bookmarks" :key="bookmark.id">
+            <div class="bookmark-item" @click="urlInput = bookmark.url; submitUrl()">
+                <img :src="'https://www.google.com/s2/favicons?domain=' + bookmark.url" @error="$event.target.src='mathpunch.jpeg'" alt="" />
+                <span x-text="bookmark.name"></span>
+            </div>
+        </template>
+        <div class="bookmark-item" @click="bookmarkCurrent()" style="color: var(--accent-blue);">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <span>Add Current</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="new-tab-ui" x-show="isNewTab">
+            <div class="clock-container">
+                <div class="clock-time" x-text="currentTime"></div>
+            </div>
+        </div>
+
+        <div x-show="engine === 'scramjet' && !isNewTab" style="width: 100%; height: 100%;">
+            <template x-for="tab in tabs" :key="tab.id">
+                <iframe 
+                    class="browser-frame"
+                    x-show="activeTabId === tab.id"
+                    :src="tab.proxyUrl || 'about:blank'"
+                    :id="'frame-' + tab.id"
+                    @load="handleIframeLoad(tab.id)"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-top-navigation allow-downloads allow-popups"
+                ></iframe>
+            </template>
+        </div>
+        
+        <div id="canvas-container" x-show="engine === 'shaders' && !isNewTab"></div>
+    </div>
+
+    <div class="modal-overlay" x-show="showSettings" style="display: none;" @click="showSettings = false">
+        <div class="modal" @click.stop>
+            <h2>Settings</h2>
+            
+            <div class="form-group">
+                <label>Browser Engine</label>
+                <select x-model="engine" @change="switchEngine()">
+                    <option value="scramjet">Scramjet (Default Proxy)</option>
+                    <option value="shaders">Shaders (Canvas Rendering)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Scramjet Wisp Server Status</label>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <select x-model="scramjetServer" @change="checkServerStatus(scramjetServer)" style="flex: 1;">
+                        <option value="wss://wisp.rhw.one/">Splash (Default)</option>
+                        <option value="wss://portable.splash.best/wisp/">Portable Splash Wisp</option>
+                        <option value="wss://technonyte-loves-x8r.installgentoo.com/wisp/">FortiGuard / Lightspeed Bypass</option>
+                        <option value="wss://v5-soon-plz-2764827364186354128.govt.hu/wisp/">Palo Alto / Blocksi Bypass</option>
+                        <option value="wss://medicine.monedita.cl/wisp/">Linewize / Cisco Umbrella Bypass</option>
+                        <option value="wss://clever.com.axsetubal.pt/wisp/">Securly / GoGuardian Bypass</option>
+                        <option value="wss://medicine.monedita.cl/wisp/">LanSchool / ContentKeeper Bypass</option>
+                        <option value="wss://medicine.monedita.cl/wisp/">iBoss / Sophos / Qustodio Bypass</option>
+                    </select>
+                    <span class="status-dot" :class="serverStatus" :title="'Server is ' + serverStatus"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" x-model="adBlockEnabled" />
+                    Enable AdBlocker
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" @click="saveSettings()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function browserApp() {
+            return {
+                tabs: [],
+                activeTabId: null,
+                urlInput: '',
+                showSettings: false,
+                currentTime: '',
+                engine: localStorage.getItem('sb_engine') || 'scramjet',
+                scramjetServer: localStorage.getItem('sb_scramjet_server') || 'wss://wisp.rhw.one/',
+                adBlockEnabled: localStorage.getItem('sb_adblock') !== 'false',
+                serverStatus: 'checking',
+                canvas: null,
+                scramjetInstance: null,
+                syncInterval: null,
+                clockInterval: null,
+                bookmarks: JSON.parse(localStorage.getItem('sb_bookmarks')) || [
+                    { id: 1, name: 'Google', url: 'https://google.com' },
+                    { id: 2, name: 'Discord', url: 'https://discord.com/app' }
+                ],
+
+                get activeTab() {
+                    return this.tabs.find(t => t.id === this.activeTabId);
+                },
+
+                get isNewTab() {
+                    return !this.activeTab || !this.activeTab.url;
+                },
+
+                async init() {
+                    this.updateTime();
+                    
+                    // Decoupled intervals: Clock updates once a minute, Sync updates quickly (reduces overhead)
+                    if (this.clockInterval) clearInterval(this.clockInterval);
+                    this.clockInterval = setInterval(() => this.updateTime(), 60000);
+
+                    if (this.syncInterval) clearInterval(this.syncInterval);
+                    this.syncInterval = setInterval(() => {
+                        this.syncUrl();
+                    }, 500);
+                    
+                    this.addTab(); 
+                    
+                    this.checkServerStatus(this.scramjetServer);
+                    this.$watch('scramjetServer', value => this.checkServerStatus(value));
+                    
+                    if(this.engine === 'shaders') {
+                        this.initShaders();
+                    } else {
+                        await this.initProxy();
+                    }
+
+                    if (window.themeManager && typeof window.themeManager.init === 'function') {
+                        try { window.themeManager.init(); } catch(e) {}
+                    }
+                },
+
+                updateTime() {
+                    const now = new Date();
+                    let hours = now.getHours();
+                    let minutes = now.getMinutes();
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    minutes = minutes < 10 ? '0' + minutes : minutes;
+                    this.currentTime = hours + ':' + minutes;
+                },
+
+                syncUrl() {
+                    if (this.engine === 'scramjet' && this.activeTab && this.activeTab.url && !this.activeTab.isLoading) {
+                        const frame = this.getActiveIframe();
+                        if (frame && frame.contentWindow) {
+                            try {
+                                const winLoc = frame.contentWindow.location;
+                                if (winLoc.pathname === 'blank' || winLoc.href === 'about:blank') return;
+                                
+                                let decoded = '';
+                                if (this.scramjetInstance && typeof this.scramjetInstance.decodeUrl === 'function') {
+                                    decoded = this.scramjetInstance.decodeUrl(winLoc.href);
+                                }
+                                
+                                if (decoded && decoded !== winLoc.href && !decoded.startsWith('about:')) {
+                                    try {
+                                        const newTitle = frame.contentDocument.title;
+                                        if (newTitle && newTitle !== this.activeTab.url) {
+                                            this.activeTab.title = newTitle;
+                                        }
+                                    } catch(e) {}
+
+                                    if (decoded !== this.activeTab.url) {
+                                        this.activeTab.url = decoded;
+                                        // Do NOT update tab.proxyUrl here. It causes an infinite re-render loop!
+                                    }
+
+                                    const inputEl = document.getElementById('main-url-input');
+                                    if (this.activeTabId === this.activeTab.id && document.activeElement !== inputEl) {
+                                        this.urlInput = decoded;
+                                    }
+                                }
+                            } catch(e) {
+                                // Ignore cross-origin frame access errors natively
+                            }
+                        }
+                    }
+                },
+
+                async initProxy() {
+                    try {
+                        const connection = new BareMux.BareMuxConnection("/sail/baremux/worker.js");
+                        // Await transport setting so it connects before we load frames
+                        await connection.setTransport("/sail/libcurl/index.mjs", [{ websocket: this.scramjetServer }]);
+                        
+                        if (!this.scramjetInstance) {
+                            const { ScramjetController } = $scramjetLoadController();
+                            this.scramjetInstance = new ScramjetController({
+                                files: {
+                                    all: "/sail/scram/scramjet.all.js",
+                                    wasm: "/sail/scram/scramjet.wasm.wasm",
+                                    sync: "/sail/scram/scramjet.sync.js"
+                                },
+                                prefix: "/swim/dive/"
+                            });
+                            this.scramjetInstance.init();
+                        }
+                    } catch (e) {
+                        console.error("Proxy init error", e);
+                    }
+                },
+
+                async initShaders() {
+                    try {
+                        const [canvasModule, clientModule] = await Promise.all([
+                            import('./shader-canvas.js').catch(() => null),
+                            import('./shader-client.js').catch(() => null),
+                        ]);
+                        
+                        if (!canvasModule) return;
+
+                        setTimeout(() => {
+                            this.canvas = new canvasModule.ShaderCanvas('canvas-container');
+                            this.canvas.on(canvasModule.ShaderCanvas.EVENTS.SURFACE_CHANGE, (s) => {
+                                if (s && s.client) {
+                                    const url = s.client.decode(s.client._lastUrl || '');
+                                    const finalUrl = url === 'about:blank' ? '' : url;
+                                    if(this.activeTab && finalUrl) {
+                                        this.activeTab.url = finalUrl;
+                                        this.activeTab.isLoading = false;
+                                        const inputEl = document.getElementById('main-url-input');
+                                        if (document.activeElement !== inputEl) this.urlInput = finalUrl;
+                                    }
+                                }
+                            });
+                            
+                            this.canvas.on(canvasModule.ShaderCanvas.EVENTS.URL_CHANGE, (url) => {
+                                if(url && this.activeTab && this.canvas.client) {
+                                    const decoded = this.canvas.client.decode(url);
+                                    if(decoded && !decoded.startsWith('about:')) {
+                                        this.activeTab.url = decoded;
+                                        this.activeTab.isLoading = false;
+                                        const inputEl = document.getElementById('main-url-input');
+                                        if (document.activeElement !== inputEl) this.urlInput = decoded;
+                                    }
+                                }
+                            });
+                        }, 100);
+                    } catch (e) {
+                        console.error("Shaders init error", e);
+                    }
+                },
+
+                switchEngine() {
+                    localStorage.setItem('sb_engine', this.engine);
+                    location.reload();
+                },
+
+                checkServerStatus(url) {
+                    this.serverStatus = 'checking';
+                    try {
+                        const ws = new WebSocket(url);
+                        const timeout = setTimeout(() => {
+                            if (ws.readyState !== WebSocket.OPEN) {
+                                ws.close();
+                                this.serverStatus = 'offline';
+                            }
+                        }, 2500);
+
+                        ws.onopen = () => {
+                            clearTimeout(timeout);
+                            this.serverStatus = 'online';
+                            ws.close();
+                        };
+                        
+                        ws.onerror = () => {
+                            clearTimeout(timeout);
+                            this.serverStatus = 'offline';
+                        };
+                    } catch (e) {
+                        this.serverStatus = 'offline';
+                    }
+                },
+
+                getEncodedProxyUrl(url) {
+                    if (!url) return 'about:blank';
+                    try {
+                        if (this.scramjetInstance) {
+                            return this.scramjetInstance.encodeUrl(url);
+                        }
+                    } catch(e) { }
+                    return 'about:blank';
+                },
+
+                addTab() {
+                    const id = Date.now();
+                    // Added proxyUrl statically so it doesn't cause infinite Reactivity re-renders
+                    this.tabs.push({ id, title: 'New Tab', url: '', proxyUrl: '', isLoading: false });
+                    this.activateTab(id);
+                    
+                    this.$nextTick(() => {
+                        const container = this.$refs.tabsContainer;
+                        if (container) {
+                            container.scrollLeft = container.scrollWidth;
+                        }
+                    });
+                },
+
+                closeTab(id) {
+                    const index = this.tabs.findIndex(t => t.id === id);
+                    if (index === -1) return;
+
+                    this.tabs.splice(index, 1);
+                    
+                    if (this.tabs.length === 0) {
+                        this.addTab();
+                    } else if (this.activeTabId === id) {
+                        const nextIndex = Math.max(0, index - 1);
+                        this.activateTab(this.tabs[nextIndex].id);
+                    }
+                },
+
+                activateTab(id) {
+                    const tab = this.tabs.find(t => t.id === id);
+                    if (!tab) return;
+                    this.activeTabId = id;
+                    this.urlInput = tab.url || '';
+                },
+
+                handleIframeLoad(id) {
+                    const tab = this.tabs.find(t => t.id === id);
+                    if (tab) {
+                        tab.isLoading = false;
+                        // Attempt an immediate sync after load
+                        setTimeout(() => this.syncUrl(), 100);
+                    }
+                },
+
+                submitUrl() {
+                    let url = this.urlInput.trim();
+                    if (!url) return;
+                    
+                    if (!url.includes('.') || url.includes(' ')) {
+                        url = "https://search.brave.com/search?q=" + encodeURIComponent(url);
+                    } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                        url = "https://" + url;
+                    }
+                    
+                    this.urlInput = url;
+                    
+                    if (this.activeTab) {
+                        this.activeTab.url = url;
+                        this.activeTab.isLoading = true;
+                        
+                        try {
+                            this.activeTab.title = new URL(url).hostname;
+                        } catch(e) {
+                            this.activeTab.title = 'Loading...';
+                        }
+                        
+                        // Calculate proxyUrl once per submission to prevent UI freezing
+                        if (this.engine === 'scramjet') {
+                            this.activeTab.proxyUrl = this.getEncodedProxyUrl(url);
+                        } else if (this.engine === 'shaders' && this.canvas) {
+                            this.canvas.createSurface(url);
+                            // Fallback timeout for shader loading state
+                            setTimeout(() => {
+                                if (this.activeTab && this.activeTab.url === url) {
+                                    this.activeTab.isLoading = false;
+                                }
+                            }, 1500); 
+                        }
+                    }
+                },
+
+                async saveSettings() {
+                    localStorage.setItem('sb_scramjet_server', this.scramjetServer);
+                    localStorage.setItem('sb_adblock', this.adBlockEnabled);
+                    
+                    // Smoothly hot-swap proxy and refresh tabs without breaking the page
+                    if (this.engine === 'scramjet') {
+                        try {
+                            const connection = new BareMux.BareMuxConnection("/sail/baremux/worker.js");
+                            await connection.setTransport("/sail/libcurl/index.mjs", [{ websocket: this.scramjetServer }]);
+                            
+                            // Refresh all currently open iframes to route through the new Wisp Server
+                            this.tabs.forEach(tab => {
+                                if (tab.proxyUrl) {
+                                    tab.isLoading = true;
+                                    const frame = document.getElementById('frame-' + tab.id);
+                                    if (frame && frame.contentWindow) {
+                                        try {
+                                            frame.contentWindow.location.reload();
+                                        } catch(e) {
+                                            frame.src = frame.src; // Fallback
+                                        }
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            console.error("Failed to swap proxy connections dynamically", e);
+                        }
+                    } else {
+                        await this.initProxy();
+                    }
+                    
+                    this.showSettings = false;
+                },
+
+                getActiveIframe() {
+                    if (this.engine !== 'scramjet' || !this.activeTabId) return null;
+                    return document.getElementById('frame-' + this.activeTabId);
+                },
+
+                goBack() {
+                    const frame = this.getActiveIframe();
+                    if (frame && frame.contentWindow) { 
+                        try { 
+                            frame.contentWindow.history.back(); 
+                            if (this.activeTab) this.activeTab.isLoading = true;
+                        } catch(e) {} 
+                    }
+                },
+
+                goForward() {
+                    const frame = this.getActiveIframe();
+                    if (frame && frame.contentWindow) { 
+                        try { 
+                            frame.contentWindow.history.forward(); 
+                            if (this.activeTab) this.activeTab.isLoading = true;
+                        } catch(e) {} 
+                    }
+                },
+
+                reloadTab() {
+                    const frame = this.getActiveIframe();
+                    if (frame) {
+                        try { 
+                            if (this.activeTab) this.activeTab.isLoading = true;
+                            frame.contentWindow.location.reload(); 
+                        } catch(e) { 
+                            frame.src = frame.src; 
+                        }
+                    } else if (this.engine === 'shaders' && this.activeTab && this.activeTab.url && this.canvas) {
+                        this.activeTab.isLoading = true;
+                        this.canvas.createSurface(this.activeTab.url);
+                    }
+                },
+
+                openInAboutBlank() {
+                    if (!this.activeTab || !this.activeTab.url) return;
+                    
+                    let targetUrl = '';
+                    if (this.engine === 'scramjet') {
+                        targetUrl = this.activeTab.proxyUrl || this.getEncodedProxyUrl(this.activeTab.url);
+                    } else {
+                        // Fallback for canvas/shaders
+                        targetUrl = this.activeTab.url;
+                    }
+
+                    const win = window.open('about:blank', '_blank');
+                    if (win) {
+                        const doc = win.document;
+                        doc.open();
+                        doc.write(`
+                            <!DOCTYPE html>
+                            <html style="margin:0;padding:0;height:100%;overflow:hidden;">
+                            <head>
+                                <title>Google</title>
+                                <link rel="icon" type="image/png" href="https://www.google.com/favicon.ico" />
+                            </head>
+                            <body style="margin:0;padding:0;height:100%;overflow:hidden;background:#fff;">
+                                <iframe src="${targetUrl}" style="border:none;width:100%;height:100%;display:block;"></iframe>
+                            </body>
+                            </html>
+                        `);
+                        doc.close();
+                    } else {
+                        alert("Please allow popups to open the page in about:blank.");
+                    }
+                },
+
+                bookmarkCurrent() {
+                    if (this.urlInput && this.urlInput !== '') {
+                        const exists = this.bookmarks.find(b => b.url === this.urlInput);
+                        if (!exists) {
+                            let newTitle = this.activeTab ? this.activeTab.title : 'Saved Page';
+                            try {
+                                if (!newTitle || newTitle === 'Saved Page' || newTitle === 'Loading...' || newTitle === 'New Tab') {
+                                    newTitle = new URL(this.urlInput).hostname;
+                                }
+                            } catch(e){}
+                            
+                            this.bookmarks = [...this.bookmarks, {
+                                id: Date.now(),
+                                name: newTitle,
+                                url: this.urlInput
+                            }];
+                        } else {
+                            this.bookmarks = this.bookmarks.filter(b => b.url !== this.urlInput);
+                        }
+                        localStorage.setItem('sb_bookmarks', JSON.stringify(this.bookmarks));
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

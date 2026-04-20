@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sigmaw </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,300;0,400;0,600;0,800;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-outer: #0a0e14;
+            --bg-panel: #060b15;
+            --border-color: #1a2332;
+            --accent-cyan: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.6);
+            --text-main: #ffffff;
+            --text-sub: #8b9bb4;
+            --grid-color: rgba(255, 255, 255, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            background-color: var(--bg-outer);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+        }
+
+        .main-panel {
+            flex-grow: 1;
+            background-color: transparent;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px), 
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .content-scroll {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 80px 40px 100px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .content-scroll::-webkit-scrollbar { width: 8px; }
+        .content-scroll::-webkit-scrollbar-track { background: transparent; }
+        .content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .content-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        .top-bar-actions {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            z-index: 50;
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: rgba(11, 20, 38, 0.8);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .header-titles { text-align: center; margin-bottom: 20px; }
+        
+        .main-title {
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .search-wrapper { 
+            width: 100%; 
+            max-width: 500px; 
+            margin: 0 auto 40px auto; 
+            position: relative; 
+        }
+        
+        .inputcontainer {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            position: relative;
+            z-index: 101;
+        }
+
+        .inputcontainer:focus-within {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .inputcontainer input {
+            background: none; border: none; outline: none;
+            color: var(--text-main); font-size: 1.1rem; width: 100%;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .inputcontainer input:focus {
+            text-align: left;
+            font-style: normal;
+        }
+        
+        .inputcontainer input::placeholder { color: rgba(255, 255, 255, 0.5); }
+
+        .combined-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .zone-item {
+            background: #111827;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .zone-item:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 255, 0.15);
+        }
+
+        .zone-item img {
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            transition: opacity 0.2s;
+        }
+
+        .zone-item:hover img {
+            opacity: 0.7;
+        }
+
+        .source-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(6, 11, 21, 0.85);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .zone-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
+            color: white;
+            padding: 30px 15px 15px 15px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .zone-item:hover .zone-name {
+            opacity: 1;
+        }
+
+        #zoneViewer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 2000; display: none; flex-direction: column;
+        }
+        
+        .zone-header {
+            background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px; display: flex; align-items: center; justify-content: space-between;
+        }
+        
+        .zone-title h2 { color: var(--text-main); font-weight: 800; font-size: 1.2rem; }
+        .zone-title span { color: var(--accent-cyan); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;}
+        
+        .zone-controls button {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white;
+            padding: 8px 16px; font-weight: 600; cursor: pointer; margin-left: 10px; transition: 0.2s; border-radius: 8px;
+        }
+        .zone-controls button:hover { background: var(--accent-cyan); border-color: var(--accent-cyan); color: #000; }
+        
+        #zoneFrame { flex-grow: 1; border: none; background: #000; }
+
+        #infoModal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--accent-cyan);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: none; border: none;
+            color: var(--text-sub);
+            font-size: 1.5rem; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--accent-cyan); }
+
+        .modal-title { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;}
+        
+        .info-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-card h4 { color: var(--accent-cyan); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 5px; }
+        .info-card p { color: var(--text-main); font-weight: 600; font-size: 1.1rem; }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            grid-column: 1 / -1;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 229, 255, 0.1);
+            border-left-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loading-text { color: var(--text-sub); font-style: italic; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="panel-container">
+        <main class="main-panel">
+            <div class="grid-bg"></div>
+
+            <div class="top-bar-actions">
+                <button class="action-btn" onclick="openSiteInAboutBlank()" title="Open Hub in about:blank">
+                    <i class="fa-solid fa-up-right-from-square"></i>
+                </button>
+                <button class="action-btn" onclick="document.getElementById('infoModal').style.display='flex'" title="System Info">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+            </div>
+
+            <div class="content-scroll">
+                
+                <div class="header-titles">
+                    <h1 class="main-title">Games</h1>
+                    <p class="subtitle" id="gameCount">Loading libraries...</p>
+                </div>
+
+                <div class="search-wrapper">
+                    <div class="inputcontainer">
+                        <input type="text" id="dumbSearchInput" placeholder="Search games..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div id="zonesWrapper" class="combined-grid">
+                    <div class="loading-container">
+                        <div class="spinner"></div>
+                        <p class="loading-text">Fetching and loading data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="zoneViewer">
+        <div class="zone-header">
+            <div class="zone-title">
+                <h2 id="zoneName">Zone Name</h2>
+                <span id="zoneAuthor">by Author</span>
+            </div>
+            <div class="zone-controls">
+                <button onclick="openGameInAboutBlank()" title="Open Game in about:blank"><i class="fa-solid fa-up-right-from-square"></i></button>
+                <button onclick="fullscreenZone()" title="Fullscreen"><i class="fa-solid fa-expand"></i></button>
+                <button onclick="closeZone()">LEAVE</button>
+            </div>
+        </div>
+        <iframe id="zoneFrame" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"></iframe>
+    </div>
+
+    <div id="infoModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="document.getElementById('infoModal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">System Info</h3>
+            
+            <div class="info-card">
+                <h4>Site Maker</h4>
+                <p>Mr Coffee duh</p>
+            </div>
+            
+            <div class="info-card">
+                <h4>Games & Engine Source</h4>
+                <p>gn-math & Contributors</p>
+            </div>
+
+            <div class="info-card">
+                <h4>Search Technology</h4>
+                <p>Enhanced Fast Search™</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const zoneViewer = document.getElementById('zoneViewer');
+        const zoneFrame = document.getElementById('zoneFrame');
+        const searchInput = document.getElementById('dumbSearchInput');
+        const zonesWrapper = document.getElementById('zonesWrapper');
+        const gameCountText = document.getElementById('gameCount');
+        
+        let allZones = [];
+        let currentBlobUrl = null;
+
+        const balatroGame = {
+            name: "Balatro",
+            sourceName: "Custom",
+            author: "Local",
+            resolvedCover: "/baltro.jpg",
+            resolvedUrl: "https://cdn.jsdelivr.net/gh/Sea-Math/game-files@main/balatro.svg"
+        };
+
+        const sources = [
+            {
+                name: "GN Math Zone",
+                type: "json",
+                json: "https://cdn.jsdelivr.net/gh/freebuisness/assets@main/zones.json",
+                cover: "https://cdn.jsdelivr.net/gh/freebuisness/covers@main",
+                html: "https://cdn.jsdelivr.net/gh/freebuisness/html@main"
+            },
+            {
+                name: "Sea Bean",
+                type: "json",
+                json: "https://cdn.jsdelivr.net/gh/sea-bean-unblocked/sde@main/zzz.json",
+                cover: "https://cdn.jsdelivr.net/gh/sea-bean-unblocked/Singlemile@main/Icon/",
+                html: "https://cdn.jsdelivr.net/gh/sea-bean-unblocked/Singlemile@main/games/"
+            },
+            {
+                name: "Master Archive",
+                type: "combined",
+                repos: ["sea-bean-unblocked/Folder-1", "sea-bean-unblocked/Folder-2", "sea-bean-unblocked/Folder-3"],
+                icon: "https://sea-math-official.neocities.org/Perfet.png"
+            }
+        ];
+
+        function openSiteInAboutBlank() {
+            let win = window.open('about:blank', '_blank');
+            win.document.body.style.margin = '0';
+            win.document.body.style.height = '100vh';
+            win.document.body.style.overflow = 'hidden';
+            let iframe = win.document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.margin = '0';
+            iframe.src = window.location.href;
+            win.document.body.appendChild(iframe);
+            window.location.replace('https://classroom.google.com'); 
+        }
+
+        function openGameInAboutBlank() {
+            if (!zoneFrame.src || zoneFrame.src === 'about:blank') return;
+            let win = window.open('about:blank', '_blank');
+            win.document.body.style.margin = '0';
+            win.document.body.style.height = '100vh';
+            win.document.body.style.overflow = 'hidden';
+            let iframe = win.document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.margin = '0';
+            iframe.src = zoneFrame.src;
+            win.document.body.appendChild(iframe);
+            closeZone();
+        }
+
+        function applyAdBlocker() {
+            const adSelectors = ['.ad', '.ads', '.adsbygoogle', '.banner-ads', '[id^="ad-"]', 'iframe[src*="doubleclick"]', '#sidebarad1', '#sidebarad2'];
+            try {
+                const innerDoc = zoneFrame.contentDocument || zoneFrame.contentWindow.document;
+                if (innerDoc) adSelectors.forEach(s => innerDoc.querySelectorAll(s).forEach(el => el.remove()));
+            } catch (e) {}
+        }
+        zoneFrame.onload = applyAdBlocker;
+
+        async function loadAllSources() {
+            const cachedData = localStorage.getItem('gamesDataCache');
+            if (cachedData) {
+                try {
+                    allZones = JSON.parse(cachedData);
+                    updateCountAndRender(allZones);
+                } catch(e) { console.warn("Cache parsing error"); }
+            }
+
+            let newZones = [balatroGame]; 
+
+            const fetchPromises = sources.map(async (source) => {
+                let sourceData = [];
+                try {
+                    if (source.type === 'json') {
+                        const res = await fetch(source.json + "?t=" + Date.now());
+                        const data = await res.json();
+                        
+                        sourceData = data.map(item => ({
+                            ...item,
+                            sourceName: source.name,
+                            resolvedCover: item.cover ? item.cover.replace("{COVER_URL}", source.cover).replace("{HTML_URL}", source.html) : (source.icon || ''),
+                            resolvedUrl: item.url ? item.url.replace("{HTML_URL}", source.html) : ''
+                        }));
+                    } else if (source.type === 'combined') {
+                        for (const repo of source.repos) {
+                            try {
+                                const res = await fetch(`https://api.github.com/repos/${repo}/contents/`);
+                                if (res.ok) {
+                                    const files = await res.json();
+                                    files.forEach(file => {
+                                        if (file.type === 'dir' || file.name.endsWith('.html')) {
+                                            sourceData.push({
+                                                name: file.name.replace('.html', ''),
+                                                id: file.sha,
+                                                author: repo,
+                                                sourceName: source.name,
+                                                resolvedCover: source.icon,
+                                                resolvedUrl: `https://cdn.jsdelivr.net/gh/${repo}@main/${file.name}${file.type === 'dir' ? '/index.html' : ''}`
+                                            });
+                                        }
+                                    });
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to load source:", source.name);
+                }
+                return sourceData;
+            });
+
+            const results = await Promise.all(fetchPromises);
+            results.forEach(data => newZones = newZones.concat(data));
+            
+            const uniqueZones = [];
+            const seen = new Set();
+            for (const item of newZones) {
+                const key = item.name + item.resolvedUrl;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueZones.push(item);
+                }
+            }
+
+            allZones = uniqueZones;
+            localStorage.setItem('gamesDataCache', JSON.stringify(allZones));
+            
+            if (searchInput.value.trim() === '') {
+                updateCountAndRender(allZones);
+            } else {
+                handlePeakSearch();
+            }
+        }
+
+        function updateCountAndRender(gamesToRender) {
+            gameCountText.textContent = `Showing ${gamesToRender.length} games`;
+            zonesWrapper.innerHTML = '';
+
+            if (gamesToRender.length === 0) {
+                zonesWrapper.innerHTML = '<p class="loading-text">No games found.</p>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            gamesToRender.forEach(file => {
+                const item = document.createElement("div");
+                item.className = "zone-item";
+                item.innerHTML = `
+                    <div class="source-tag">${file.sourceName}</div>
+                    <img src="${file.resolvedCover}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x200/111827/ffffff?text=${encodeURIComponent(file.name)}'">
+                    <div class="zone-name">${file.name}</div>
+                `;
+                item.onclick = (e) => { e.preventDefault(); openZone(file); };
+                fragment.appendChild(item);
+            });
+            zonesWrapper.appendChild(fragment);
+        }
+
+        function handlePeakSearch() {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            if (query === '') {
+                updateCountAndRender(allZones);
+                return;
+            }
+
+            const searchTokens = query.split(/\s+/);
+            
+            const results = allZones.filter(z => {
+                const targetStr = `${z.name} ${z.author || ''} ${z.sourceName || ''}`.toLowerCase();
+                return searchTokens.every(token => targetStr.includes(token));
+            });
+
+            updateCountAndRender(results);
+        }
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(handlePeakSearch, 150);
+        });
+
+        function openZone(file) {
+            const url = file.resolvedUrl;
+            const cacheBusterUrl = url + (url.includes('?') ? '&' : '?') + "t=" + Date.now();
+            
+            zoneFrame.src = "about:blank";
+            document.getElementById('zoneName').textContent = "Connecting to " + file.name + "...";
+            document.getElementById('zoneAuthor').textContent = "AUTHOR: " + (file.author || "UNKNOWN");
+            zoneViewer.style.display = "flex";
+
+            if (url.startsWith("/") || (url.startsWith("http") && !url.includes("cdn.jsdelivr.net") && !url.includes("api.github.com"))) {
+                zoneFrame.src = url; 
+                document.getElementById('zoneName').textContent = file.name; 
+                return;
+            }
+
+            fetch(cacheBusterUrl)
+                .then(res => { if (!res.ok) throw new Error('Network Issue'); return res.text(); })
+                .then(html => {
+                    if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+                    
+                    const safetyScript = `<script>
+                        window.onbeforeunload = function() { return "Staying in site!"; };
+                        
+                        window.open = function() { 
+                            return null; 
+                        };
+                        
+                        setInterval(function() {
+                            const ads = document.querySelectorAll('.ad, .ads, .adsbygoogle, .banner-ads, [id^="ad-"], iframe[src*="doubleclick"], iframe[src*="googleads"], #sidebarad1, #sidebarad2');
+                            ads.forEach(ad => ad.remove());
+                        }, 500); 
+                    <\/script>`;
+                    
+                    let finalHtml = html.toLowerCase().includes('<head>') 
+                        ? html.replace(/<head>/i, '<head>' + safetyScript) 
+                        : safetyScript + html;
+                        
+                    currentBlobUrl = URL.createObjectURL(new Blob([finalHtml], { type: 'text/html;charset=utf-8' }));
+                    zoneFrame.src = currentBlobUrl; 
+                    document.getElementById('zoneName').textContent = file.name;
+                })
+                .catch(err => { 
+                    zoneFrame.src = url; 
+                    document.getElementById('zoneName').textContent = file.name; 
+                });
+        }
+
+        function closeZone() {
+            zoneViewer.style.display = "none"; zoneFrame.src = "about:blank";
+            if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
+        }
+
+        function fullscreenZone() {
+            if (zoneFrame.requestFullscreen) zoneFrame.requestFullscreen();
+            else if (zoneFrame.webkitRequestFullscreen) zoneFrame.webkitRequestFullscreen();
+            else if (zoneFrame.mozRequestFullScreen) zoneFrame.mozRequestFullScreen();
+            else if (zoneFrame.msRequestFullscreen) zoneFrame.msRequestFullscreen();
+        }
+
+        window.onload = loadAllSources;
+    </script>
+</body>
+</html>

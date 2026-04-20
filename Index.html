@@ -1,0 +1,892 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudyZone - Middle School Learning</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" id="favicon" href="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        #studyzone-decoy {
+            position: fixed; inset: 0; z-index: 9999999; 
+            background: #e0e0e0; color: #222;
+            font-family: Verdana, Arial, sans-serif; font-size: 12px;
+            overflow-y: auto; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #studyzone-decoy * { margin: 0; padding: 0; box-sizing: border-box; }
+        #studyzone-decoy #wrapper { width: 900px; margin: 15px auto; background: #fff; border: 1px solid #999; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #studyzone-decoy #header { background: #003d7a; padding: 25px; border-bottom: 4px solid #002855; }
+        #studyzone-decoy #header h1 { color: #fff; font-size: 32px; margin-bottom: 5px; }
+        #studyzone-decoy #header p { color: #99ccff; font-size: 13px; }
+        #studyzone-decoy #nav { background: #0066cc; overflow: hidden; }
+        #studyzone-decoy #nav a { float: left; color: #fff; padding: 10px 20px; text-decoration: none; border-right: 1px solid #0052a3; font-size: 11px; font-weight: bold; }
+        #studyzone-decoy #nav a:hover { background: #0052a3; }
+        #studyzone-decoy #main { overflow: hidden; }
+        #studyzone-decoy #sidebar-school { float: left; width: 200px; background: #f7f7f7; border-right: 1px solid #ccc; padding: 15px; }
+        #studyzone-decoy #sidebar-school h3 { background: #003d7a; color: #fff; padding: 6px 8px; font-size: 12px; margin: -15px -15px 12px -15px; }
+        #studyzone-decoy #sidebar-school ul { list-style: none; margin-bottom: 20px; }
+        #studyzone-decoy #sidebar-school li { padding: 5px 0; border-bottom: 1px solid #ddd; }
+        #studyzone-decoy #sidebar-school a { color: #0066cc; text-decoration: none; font-size: 11px; }
+        #studyzone-decoy #sidebar-school a:hover { text-decoration: underline; }
+        #studyzone-decoy #content-school { float: left; width: 685px; padding: 20px; }
+        #studyzone-decoy #content-school h2 { color: #003d7a; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #0066cc; padding-bottom: 5px; }
+        #studyzone-decoy #content-school p { line-height: 1.6; margin-bottom: 12px; }
+        #studyzone-decoy .box { background: #f9f9f9; border: 1px solid #ccc; padding: 12px; margin-bottom: 15px; }
+        #studyzone-decoy .box h3 { color: #003d7a; font-size: 14px; margin-bottom: 8px; }
+        #studyzone-decoy .btn { background: #0066cc; color: #fff; padding: 6px 15px; text-decoration: none; font-size: 11px; font-weight: bold; display: inline-block; border: 1px solid #0052a3; }
+        #studyzone-decoy .btn:hover { background: #0052a3; }
+        #studyzone-decoy .alert { background: #ffffcc; border: 1px solid #ffcc00; padding: 10px; margin-bottom: 15px; font-size: 11px; }
+        #studyzone-decoy .alert strong { color: #cc6600; }
+        #studyzone-decoy #footer { clear: both; background: #003d7a; color: #99ccff; text-align: center; padding: 12px; font-size: 10px; border-top: 4px solid #002855; }
+        #studyzone-decoy table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        #studyzone-decoy table td { padding: 8px; border: 1px solid #ccc; background: #f9f9f9; }
+        #studyzone-decoy table td strong { color: #003d7a; }
+
+        :root { 
+            --accent: #00d2ff; 
+            --accent-dark: #0077ff;
+            --bg-deep: #000814; 
+            --bg-light: #001f3f; 
+            --sidebar-bg: rgba(0, 8, 20, 0.85); 
+            --text-heading: #d4d4d8; 
+            --text-main: #a1a1aa; 
+            --text-muted: #6b8cae; 
+            --sidebar-w-expanded: 260px;
+            --sidebar-w-collapsed: 85px;
+            --glass-border: rgba(255,255,255,0.08); 
+            --anim-snappy: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            --anim-smooth: 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-light); border-radius: 8px; border: 2px solid var(--bg-deep); transition: background 0.3s ease; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        html, body {
+            background-color: var(--bg-deep) !important;
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: var(--text-main);
+            display: flex;
+            box-sizing: border-box;
+            transition: background-color var(--anim-smooth);
+        }
+        
+        *, *::before, *::after { box-sizing: inherit; }
+
+        body::after {
+            content: ''; position: fixed; inset: 0; z-index: -1;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+            opacity: 0.7;
+        }
+
+        #sidebar {
+            width: var(--sidebar-w-collapsed);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; z-index: 20;
+            transition: width var(--anim-snappy), background-color var(--anim-smooth), border-color var(--anim-smooth);
+            overflow: hidden; will-change: width;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+
+        #sidebar.expanded { width: var(--sidebar-w-expanded); box-shadow: 10px 0 40px rgba(0, 0, 0, 0.6); }
+
+        .sidebar-inner {
+            display: flex; flex-direction: column; height: 100%;
+            overflow-y: auto; overflow-x: hidden; padding: 25px 0;
+        }
+        .sidebar-inner::-webkit-scrollbar { display: none; }
+
+        .sidebar-brand { display: flex; align-items: center; justify-content: flex-start; margin: 0 12px 30px 12px; height: 44px; white-space: nowrap; }
+        .brand-icon-wrapper { width: 61px; min-width: 61px; display: flex; align-items: center; justify-content: center; }
+        .brand-icon {
+            width: 42px; height: 42px; background: var(--bg-light); border: 1px solid var(--glass-border);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), background-color var(--anim-smooth), border-color var(--anim-smooth);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        #sidebar.expanded .brand-icon { transform: rotate(360deg) scale(1.05); border-color: var(--accent); background: var(--bg-deep); }
+        .brand-icon .lucide { color: var(--accent); width: 22px; height: 22px; transition: transform var(--anim-snappy), color var(--anim-smooth);}
+
+        .brand-text {
+            margin-left: 8px; font-size: 19px; font-weight: 700; color: var(--text-heading);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            opacity: 0; transition: opacity 0.3s ease, transform var(--anim-snappy);
+            transform: translateX(-15px);
+        }
+        #sidebar.expanded .brand-text { opacity: 1; transform: translateX(0); }
+
+        .nav-item {
+            display: flex; align-items: center; justify-content: flex-start;
+            margin: 4px 12px; width: calc(100% - 24px); height: 48px;
+            border-radius: 12px; color: var(--text-muted);
+            text-decoration: none; font-size: 14.5px; font-weight: 500;
+            cursor: pointer; background: transparent; border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); white-space: nowrap;
+            position: relative; overflow: hidden;
+        }
+
+        .icon-container { width: 61px; min-width: 61px; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 2; }
+        .nav-item .lucide, .nav-item .custom-icon { width: 20px; height: 20px; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .nav-text { margin-left: 6px; opacity: 0; transition: all 0.3s ease; margin-top: 2px; transform: translateX(-10px); z-index: 2; }
+        
+        #sidebar.expanded .nav-text { opacity: 1; transform: translateX(0); }
+        .nav-item:hover { color: var(--text-heading); background: var(--bg-light); transform: translateX(4px); border-color: var(--glass-border);}
+        .nav-item:hover .lucide, .nav-item:hover .custom-icon { color: var(--text-heading); transform: scale(1.15); }
+        
+        .nav-item.active { color: var(--text-heading); background: var(--bg-light); border: 1px solid var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .nav-item.active .lucide, .nav-item.active .custom-icon { color: var(--accent); transform: scale(1.2); }
+
+        .sidebar-footer { border-top: 1px solid var(--glass-border); padding-top: 15px; margin-top: 15px; transition: border-color var(--anim-smooth); }
+
+        body.mobile-mode { flex-direction: column-reverse; }
+        body.mobile-mode #sidebar { width: 100% !important; height: 75px; min-height: 75px; border-right: none; border-top: 1px solid var(--glass-border); flex-direction: row; padding: 0; z-index: 100; box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
+        body.mobile-mode .sidebar-inner { flex-direction: row; padding: 0 15px; width: 100%; justify-content: space-around; align-items: center; overflow: visible; }
+        body.mobile-mode .sidebar-brand, body.mobile-mode .nav-text, body.mobile-mode .sidebar-footer { display: none; }
+        body.mobile-mode .nav-item { width: 50px; height: 50px; margin: 0; border-radius: 14px; justify-content: center; transform: none !important; }
+        body.mobile-mode .icon-container { width: 100%; min-width: unset; }
+        body.mobile-mode #content-area { height: calc(100vh - 75px); padding: 10px; }
+        body.mobile-mode #iframe-wrapper { border-radius: 20px; }
+
+        #content-area { flex: 1; height: 100vh; position: relative; overflow: hidden; padding: 20px; box-sizing: border-box; transition: padding var(--anim-snappy); }
+        #iframe-wrapper { width: 100%; height: 100%; border-radius: 24px; overflow: hidden; border: 1px solid var(--glass-border); position: relative; transition: filter var(--anim-smooth), transform var(--anim-snappy), border-radius var(--anim-snappy), box-shadow var(--anim-snappy), border-color var(--anim-smooth); will-change: filter, transform; background: var(--bg-deep); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        #iframe-wrapper.blurred { filter: brightness(0.3) blur(8px); pointer-events: none; transform: scale(0.985); }
+        #mainFrame { width: 100%; height: 100%; border: none; background: transparent; display: block; transition: opacity 0.4s ease;}
+
+        .modal-overlay {
+            position: fixed; inset: 0; 
+            background: rgba(0, 0, 0, 0.7); 
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 5000; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        #startupOverlay { z-index: 6000; background: var(--bg-deep); backdrop-filter: none; transition: background-color var(--anim-smooth), opacity 0.6s ease; }
+
+        .modal-content {
+            background: var(--bg-deep); border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 35px 40px; width: 480px; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05); 
+            display: flex; flex-direction: column; 
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform: scale(0.9) translateY(20px); opacity: 0;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .startup-modal { width: 440px; gap: 20px; }
+        .startup-modal h2 { margin: 0 0 5px 0; color: var(--text-heading); font-size: 28px; text-align: center; font-weight: 700; letter-spacing: -0.5px;}
+        .startup-modal p.subtitle { color: var(--text-muted); text-align: center; margin: 0 0 15px 0; font-size: 15px;}
+
+        .settings-header, .announcement-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 20px; margin-bottom: 25px; transition: border-color var(--anim-smooth);}
+        .settings-header h2, .announcement-header { margin: 0; color: var(--text-heading); font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .settings-header h2 .lucide, .announcement-header .lucide { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; transition: color var(--anim-smooth);}
+        
+        .close-btn { background: var(--bg-light); border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 12px; width: 36px; height: 36px; flex-shrink: 0; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 0; display: flex; align-items: center; justify-content: center; }
+        .close-btn .lucide { width: 16px; height: 16px; transition: transform 0.2s ease;}
+        .close-btn:hover { background: var(--glass-border); color: var(--text-heading); transform: scale(1.05); }
+        .close-btn:hover .lucide { transform: rotate(90deg); }
+
+        .settings-section-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-top: 25px; }
+        .settings-section-title::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); transition: background-color var(--anim-smooth);}
+        .settings-section-title:first-of-type { margin-top: 0; }
+        .settings-section-title .lucide { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0;}
+
+        .device-toggle { display: flex; gap: 12px; margin-top: 5px; }
+        .device-btn { flex: 1; padding: 16px; background: var(--bg-deep); border: 2px solid var(--glass-border); border-radius: 16px; color: var(--text-muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all var(--anim-snappy); position: relative; overflow: hidden; }
+        .device-btn .lucide { width: 28px; height: 28px; transition: transform var(--anim-snappy); }
+        .device-btn span { font-weight: 600; font-size: 14px; }
+        .device-btn:hover { background: var(--bg-light); border-color: var(--text-muted); transform: translateY(-2px); color: var(--text-main);}
+        .device-btn.active { border-color: var(--accent); color: var(--accent); background: var(--bg-light); box-shadow: 0 10px 25px rgba(0,0,0,0.4); transform: translateY(-4px); }
+        .device-btn.active .lucide { transform: scale(1.1); }
+
+        .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .theme-preview-btn { background: var(--bg-light); border: 2px solid var(--glass-border); border-radius: 12px; width: 100%; aspect-ratio: 1; cursor: pointer; position: relative; transition: all var(--anim-snappy); display: flex; align-items: center; justify-content: center; padding: 0; overflow: hidden;}
+        .theme-preview-btn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.05); opacity: 0; transition: opacity var(--anim-snappy); }
+        .theme-preview-btn:hover::after { opacity: 1; }
+        .theme-preview-btn:hover { border-color: var(--text-muted); transform: scale(1.05) translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .theme-preview-btn.active { border-color: var(--accent); background: var(--bg-light); transform: scale(1.1); box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 2;}
+        .theme-color-swatch { width: 30px; height: 30px; border-radius: 8px; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+
+        .setting-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .setting-group.flex-row { flex-direction: row; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .setting-group label { color: var(--text-heading); font-size: 14px; font-weight: 500; }
+
+        .settings-input, .settings-select { padding: 14px 16px; background: var(--bg-deep); border: 1px solid var(--glass-border); color: var(--text-heading); border-radius: 12px; outline: none; font-family: 'Inter', sans-serif; transition: all var(--anim-snappy); font-size: 14px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .settings-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2352525b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 16px top 50%; background-size: 10px auto; }
+        .settings-input:focus, .settings-select:focus { border-color: var(--accent); background: var(--bg-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.05); }
+        
+        .startup-btn { background: var(--accent); color: var(--bg-deep) !important; border: none !important; font-weight: 700; font-size: 16px; margin-top: 15px; padding: 16px !important; border-radius: 14px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all var(--anim-snappy), background-color var(--anim-smooth);}
+        .startup-btn .lucide { transition: transform var(--anim-snappy); }
+        .startup-btn:hover { background: var(--text-heading); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.4);}
+        .startup-btn:hover .lucide { transform: translateX(5px); }
+
+        .btn-stealth { padding: 14px; background: var(--bg-light); color: var(--text-heading); border: 1px solid var(--glass-border); border-radius: 12px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all var(--anim-snappy); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; }
+        .btn-stealth .lucide { width: 18px; height: 18px; flex-shrink: 0; }
+        .btn-stealth:hover:not(.startup-btn) { background: var(--glass-border); border-color: var(--text-muted); transform: translateY(-2px); }
+
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; margin: 0; flex-shrink: 0;}
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--glass-border); transition: .4s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 26px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: var(--text-muted); transition: .4s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);}
+        input:checked + .slider { background-color: var(--text-muted); }
+        input:checked + .slider:before { transform: translateX(22px); background-color: var(--accent); }
+
+        .announcement-content { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        .update-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px; border-radius: 16px; background: var(--bg-deep); border: 1px solid var(--bg-light); transition: transform var(--anim-snappy), border-color var(--anim-smooth); }
+        .update-item:hover { transform: translateX(5px); border-color: var(--glass-border); background: var(--bg-light);}
+        .update-icon { display: flex; align-items: center; justify-content: center; margin-top: 2px; width: 42px; height: 42px; min-width: 42px; flex-shrink: 0; background: var(--bg-light); border: 1px solid var(--glass-border); border-radius: 12px; }
+        .update-icon .lucide { width: 22px; height: 22px; color: var(--accent); transition: color var(--anim-smooth);}
+        .update-text { display: flex; flex-direction: column; gap: 6px; }
+        .update-text h4 { margin: 0; color: var(--text-heading); font-size: 15px; font-weight: 600; }
+        .update-text p { margin: 0; color: var(--text-main); font-size: 14px; line-height: 1.5; }
+        
+        .announcement-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--glass-border); }
+        .announcement-footer button { padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--anim-snappy); font-family: 'Inter', sans-serif; }
+        .btn-announce-secondary { background: transparent; border: 1px solid transparent; color: var(--text-muted); }
+        .btn-announce-secondary:hover { color: var(--text-heading); background: var(--bg-light); }
+        .btn-announce-primary { background: var(--accent); border: none; color: var(--bg-deep); transition: background-color var(--anim-smooth);}
+        .btn-announce-primary:hover { background: var(--text-heading); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3);}
+
+        #ad-container { position: fixed; bottom: 25px; right: 25px; z-index: 4000; background: var(--sidebar-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 12px 18px 18px 18px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);}
+        #ad-container.slide-out { transform: translateY(150%) scale(0.9); opacity: 0; pointer-events: none; }
+        .ad-header { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+        .ad-close-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border-radius: 8px;}
+        .ad-close-btn:hover { color: var(--text-heading); background: var(--bg-light); transform: scale(1.1);}
+        .ad-close-btn .lucide { width: 16px; height: 16px; }
+        
+        .wave-wrapper {
+            position: fixed; inset: 0; z-index: 5001;
+            pointer-events: none; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .wave-fill {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 100vh;
+            background: var(--bg-deep);
+            transform: translate3d(0, 120%, 0);
+            will-change: transform;
+            transition: transform var(--anim-smooth);
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.5);
+        }
+        .wave-fill.active { transform: translate3d(0, 0%, 0); }
+        
+        .svg-waves {
+            position: absolute; bottom: 99.5%; left: 0; 
+            width: 100%; height: 15vh; min-height: 100px;
+            pointer-events: none;
+        }
+        
+        .parallax > use { animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite; }
+        .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
+        .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
+        .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
+        .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
+
+        @keyframes move-forever { 0% { transform: translate3d(-90px,0,0); } 100% { transform: translate3d(85px,0,0); } }
+
+        #loaderOverlay { z-index: 4500; position: absolute; inset: 0; }
+        #loaderOverlay .wave-fill {
+            height: 100%;
+            background: var(--bg-deep);
+            backdrop-filter: none; -webkit-backdrop-filter: none;
+            box-shadow: none;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        #loaderOverlay .svg-waves { height: 120px; }
+        .loading-text { 
+            font-size: 20px; letter-spacing: 8px; color: var(--text-heading); 
+            font-weight: 700; text-transform: uppercase; text-align: center; 
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            opacity: 0; transform: translateY(20px); transition: all 0.5s ease;
+        }
+        .loading-text.active { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+
+    </style>
+</head>
+<body>
+
+    <div id="studyzone-decoy">
+        <div id="wrapper">
+            <div id="header">
+                <h1>StudyZone</h1>
+                <p>Your Complete Middle School Resource Center</p>
+                <p style="font-size: 10px; margin-top: 8px;">Powered by Clever.com</p>
+            </div>
+            
+            <div id="nav">
+                <a href="#home">HOME</a>
+                <a href="#subjects">SUBJECTS</a>
+                <a href="#resources">RESOURCES</a>
+                <a href="#help">HOMEWORK HELP</a>
+                <a href="#teachers">FOR TEACHERS</a>
+                <a href="#about">ABOUT</a>
+            </div>
+            
+            <div id="main">
+                <div id="sidebar-school">
+                    <h3>SUBJECTS</h3>
+                    <ul>
+                        <li><a href="#math">Mathematics</a></li>
+                        <li><a href="#science">Science</a></li>
+                        <li><a href="#english">English</a></li>
+                    </ul>
+                </div>
+                
+                <div id="content-school">
+                    <div class="alert">
+                        <strong>NEW:</strong> Interactive practice tests now available for all subjects. Check the Resources section.
+                    </div>
+                    
+                    <h2>Welcome to StudyZone</h2>
+                    <p>StudyZone is your one-stop resource for middle school learning. Whether you need help with homework, want to practice for tests, or just want to learn something new.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="startupOverlay" class="modal-overlay">
+        <div class="modal-content startup-modal">
+            <h2>Welcome to Sea Bean</h2>
+            <p class="subtitle">Customize your portal before diving in.</p>
+            
+            <div class="setting-group">
+                <label>What's your name?</label>
+                <input type="text" id="userName" class="settings-input" placeholder="Enter name..." autocomplete="off">
+            </div>
+
+            <div class="setting-group">
+                <label>Select Theme</label>
+                <div class="theme-grid" id="startupThemeGrid"></div>
+                <input type="hidden" id="startupSelectedTheme" value="blue">
+            </div>
+
+            <div class="setting-group">
+                <label>Device Mode</label>
+                <div class="device-toggle">
+                    <div class="device-btn active" onclick="selectDevice('desktop', this)">
+                        <i data-lucide="monitor"></i>
+                        <span>Computer</span>
+                    </div>
+                    <div class="device-btn" onclick="selectDevice('mobile', this)">
+                        <i data-lucide="smartphone"></i>
+                        <span>Mobile</span>
+                    </div>
+                </div>
+                <input type="hidden" id="deviceSelection" value="desktop">
+            </div>
+
+            <div class="setting-group">
+                <label>Disguise Portal As</label>
+                <select id="startupCloakSelect" class="settings-select" onchange="if(window.setCloak) window.setCloak(this.value)">
+                    <option value="default">None (Default)</option>
+                    <option value="google">Google</option>
+                    <option value="drive">Google Drive</option>
+                    <option value="ixl">IXL | Learning</option>
+                    <option value="canvas">Canvas Dashboard</option>
+                </select>
+            </div>
+            
+            <button class="btn-stealth startup-btn" onclick="finishStartup()">
+                Catch the wave <i data-lucide="waves"></i>
+            </button>
+        </div>
+    </div>
+
+    <nav id="sidebar" onmouseenter="handleSidebarHover(true)" onmouseleave="handleSidebarHover(false)">
+        <div class="sidebar-inner">
+            <div class="sidebar-brand">
+                <div class="brand-icon-wrapper">
+                    <div class="brand-icon"><i data-lucide="waves"></i></div>
+                </div>
+                <div class="brand-text" id="brandTextDisplay">sea bean</div>
+            </div>
+
+            <a class="nav-item active" onclick="loadPage('/pages/home/', 'Home', this)">
+                <div class="icon-container"><i data-lucide="home"></i></div>
+                <span class="nav-text">Home</span>
+            </a>
+            <a class="nav-item" onclick="loadPage('/pages/games/', 'Games', this)">
+                <div class="icon-container"><i data-lucide="gamepad-2"></i></div>
+                <span class="nav-text">Games</span>
+            </a>
+            <a class="nav-item" onclick="loadPage('/pages/chat/', 'Chat', this)">
+                <div class="icon-container"><i data-lucide="message-square"></i></div>
+                <span class="nav-text">Chat</span>
+            </a>
+            <a class="nav-item" onclick="loadPage('/tusd.html', 'Browse dah web', this)">
+                <div class="icon-container"><i data-lucide="compass"></i></div>
+                <span class="nav-text">Browse</span>
+            </a>
+            <a class="nav-item" onclick="loadPage('/aiv1.html', 'talk to smart man', this)">
+                <div class="icon-container"><i data-lucide="bot"></i></div>
+                <span class="nav-text">Ai</span>
+            </a>
+            <a class="nav-item" onclick="loadPage('/music.html', 'Music', this)">
+                <div class="icon-container"><i data-lucide="music"></i></div>
+                <span class="nav-text">Music</span>
+            </a>
+            
+            <div style="flex-grow: 1; min-height: 20px;"></div>
+            
+            <div class="sidebar-footer">
+                <a class="nav-item" href="https://discord.gg/z8nfMADyYh" target="_blank">
+                    <div class="icon-container">
+                        <svg class="custom-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                    </div>
+                    <span class="nav-text">Discord</span>
+                </a>
+                
+                <a class="nav-item" href="https://github.com/Sea-Math/Sea-Math.github.io" target="_blank">
+                    <div class="icon-container">
+                        <svg class="custom-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4"></path>
+                        </svg>
+                    </div>
+                    <span class="nav-text">GitHub</span>
+                </a>
+
+                <a class="nav-item" onclick="openSettings()">
+                    <div class="icon-container"><i data-lucide="settings"></i></div>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main id="content-area">
+        <div id="iframe-wrapper">
+            <iframe id="mainFrame" src="/pages/home/"></iframe>
+            
+            <div id="loaderOverlay" class="wave-wrapper">
+                <div id="loaderWaveFill" class="wave-fill">
+                    <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+                        <defs><path id="loader-gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
+                        <g class="parallax">
+                            <use href="#loader-gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.4" />
+                            <use href="#loader-gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.6" />
+                            <use href="#loader-gentle-wave" x="48" y="5" fill="var(--accent-dark)" opacity="0.8" />
+                            <use href="#loader-gentle-wave" x="48" y="7" fill="var(--bg-deep)" />
+                        </g>
+                    </svg>
+                    <div class="loading-text" id="loadingText">LOADING...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="themeTransitionOverlay" class="wave-wrapper">
+        <div id="themeWaveFill" class="wave-fill">
+            <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+                <defs><path id="theme-gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
+                <g class="parallax" id="transitionWaveGroup">
+                    <use href="#theme-gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.5" />
+                    <use href="#theme-gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.7" />
+                    <use href="#theme-gentle-wave" x="48" y="5" fill="var(--dark)" opacity="0.9" />
+                    <use href="#theme-gentle-wave" x="48" y="7" fill="var(--bg-deep)" />
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div id="ad-container">
+        <div class="ad-header">
+            <button class="ad-close-btn" onclick="closeAd()" title="Close Ad"><i data-lucide="x"></i></button>
+        </div>
+        <div class="ad-content" id="primary-ad-slot">
+            <script>
+              atOptions = { 'key' : '3a0c896517c814565189b7eaed27393c', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/3a0c896517c814565189b7eaed27393c/invoke.js"></script>
+        </div>
+    </div>
+    <div id="turbo-ad-container" style="display:none;"></div>
+
+    <div id="settingsOverlay" class="modal-overlay" onclick="closeSettings(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="settings-header">
+                <h2><i data-lucide="sliders-horizontal"></i> Settings</h2>
+                <button class="close-btn" onclick="document.getElementById('settingsOverlay').classList.remove('show')"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="settings-section-title"><i data-lucide="megaphone"></i> Advertisement</div>
+            <div class="setting-group flex-row">
+                <label>Master Ads Toggle</label>
+                <label class="switch">
+                    <input type="checkbox" id="masterAdToggle" checked onchange="toggleMasterAds(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-group flex-row">
+                <label>Turbo Ad Mode</label>
+                <label class="switch">
+                    <input type="checkbox" id="turboAdToggle" onchange="toggleTurboAds(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-section-title"><i data-lucide="palette"></i> Appearance</div>
+            <div class="theme-grid" id="themeGridContainer"></div>
+
+            <div class="settings-section-title"><i data-lucide="ghost"></i> Privacy & Stealth</div>
+            <div class="setting-group">
+                <label>Disguise Tab As</label>
+                <select id="cloakSelect" class="settings-select" onchange="window.setCloak(this.value);">
+                    <option value="default">None (Default)</option>
+                    <option value="google">Google</option>
+                    <option value="drive">Google Drive</option>
+                    <option value="ixl">IXL | Learning</option>
+                    <option value="canvas">Canvas Dashboard</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Panic Redirect URL (Press Esc)</label>
+                <input type="text" id="panicUrlInput" class="settings-input" placeholder="https://www.google.com" onchange="window.updatePanicUrl(this.value)">
+            </div>
+            
+            <div class="setting-group">
+                <label>Auto-Panic</label>
+                <select id="autoPanicSelect" class="settings-select" onchange="window.updateAutoPanic(this.value)">
+                    <option value="false">Off (Stay open in background)</option>
+                    <option value="true">On (Redirect immediately if you change tabs)</option>
+                </select>
+            </div>
+
+            <button class="btn-stealth" onclick="window.openAboutBlank()">
+                <i data-lucide="external-link"></i> Launch Portal in about:blank
+            </button>
+        </div>
+    </div>
+
+    <div id="themeAnnouncementOverlay" class="modal-overlay">
+        <div class="modal-content announcement-modal">
+            <div class="announcement-header">
+                <i data-lucide="waves"></i>
+                <span id="announceTitle">better update???</span>
+            </div>
+            
+            <div class="announcement-content" id="announceContent">
+                <div class="update-item">
+                    <div class="update-icon"><i data-lucide="eye-off"></i></div>
+                    <div class="update-text">
+                        <h4>Lights Out</h4>
+                        <p>We've turned off the bright neons, glows, and harsh whites to protect your eyes.</p>
+                    </div>
+                </div>
+                <div class="update-item">
+                    <div class="update-icon"><i data-lucide="smartphone"></i></div>
+                    <div class="update-text">
+                        <h4>Mobile Ready</h4>
+                        <p>You can now toggle mobile mode for a native app-like experience on smaller screens.</p>
+                    </div>
+                </div>
+                <div class="update-item">
+                    <div class="update-icon"><i data-lucide="wind"></i></div>
+                    <div class="update-text">
+                        <h4>Silky Smooth</h4>
+                        <p>Added custom animations and snappy transitions across the entire platform.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="announcement-footer">
+                <button class="btn-announce-secondary" onclick="console.log('Redirect to changelog')">Changelog</button>
+                <button class="btn-announce-primary" onclick="closeAnnouncement()">Awesome</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        window.panicUrl = localStorage.getItem('sb_panic') || 'https://www.google.com';
+        window.autoPanic = localStorage.getItem('sb_autopanic') === 'true';
+
+        window.updatePanicUrl = (url) => { window.panicUrl = url; localStorage.setItem('sb_panic', url); };
+        window.updateAutoPanic = (val) => { window.autoPanic = val === 'true'; localStorage.setItem('sb_autopanic', window.autoPanic); };
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.location.replace(window.panicUrl); });
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && window.autoPanic) window.location.replace(window.panicUrl); });
+
+        const cloaks = {
+            default: { title: "StudyZone - Middle School Learning", icon: "" },
+            google: { title: "Google", icon: "https://www.google.com/favicon.ico" },
+            drive: { title: "My Drive - Google Drive", icon: "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png" },
+            ixl: { title: "IXL | Math, Language Arts, Science, Social Studies, and Spanish", icon: "https://www.ixl.com/ixl-favicon.png" },
+            canvas: { title: "Dashboard", icon: "https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico" }
+        };
+
+        window.setCloak = (cloakId) => {
+            const cloak = cloaks[cloakId] || cloaks.default;
+            document.title = cloak.title;
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+            link.href = cloak.icon;
+            localStorage.setItem('sb_cloak', cloakId);
+        };
+
+        window.openAboutBlank = () => {
+            const win = window.open('about:blank', '_blank');
+            if (win) {
+                win.document.write(`<iframe src="${window.location.href}" style="border:none;width:100vw;height:100vh;margin:0;padding:0;"></iframe>`);
+                win.document.body.style.margin = '0';
+                window.location.replace(window.panicUrl);
+            } else { alert('Popup blocker prevented opening about:blank'); }
+        };
+
+        const themes = {
+           blue: { name: 'Ocean Blue', accent: '#00d2ff', dark: '#0077ff', bgDeep: '#000814', bgLight: '#001f3f', sidebarBg: 'rgba(0, 8, 20, 0.85)', textMuted: '#6b8cae' },
+        purple: { name: 'Neon Purple', accent: '#d500ff', dark: '#7b00ff', bgDeep: '#0d0014', bgLight: '#2b004d', sidebarBg: 'rgba(13, 0, 20, 0.85)', textMuted: '#a37ec4' },
+        red: { name: 'Crimson Red', accent: '#ff3333', dark: '#b30000', bgDeep: '#140000', bgLight: '#3d0000', sidebarBg: 'rgba(20, 0, 0, 0.85)', textMuted: '#c47e7e' },
+        green: { name: 'Forest Green', accent: '#00ff88', dark: '#00aa55', bgDeep: '#001408', bgLight: '#003617', sidebarBg: 'rgba(0, 20, 8, 0.85)', textMuted: '#67a886' },
+        orange: { name: 'Sunset Orange', accent: '#ff9900', dark: '#cc5500', bgDeep: '#1a0800', bgLight: '#3d1400', sidebarBg: 'rgba(26, 8, 0, 0.85)', textMuted: '#ba8c6c' },
+        pink: { name: 'Sakura Pink', accent: '#ff99cc', dark: '#cc0066', bgDeep: '#1a000d', bgLight: '#4d0026', sidebarBg: 'rgba(26, 0, 13, 0.85)', textMuted: '#c989a9' },
+        dark: { name: 'Midnight Dark', accent: '#aaaaaa', dark: '#555555', bgDeep: '#050505', bgLight: '#1a1a1a', sidebarBg: 'rgba(5, 5, 5, 0.85)', textMuted: '#888888' },
+        yellow: { name: 'Midnight Lemon', accent: '#FDE047', dark: '#CA8A04', bgDeep: '#050505', bgLight: '#1a1a17', sidebarBg: 'rgba(5, 5, 5, 0.85)', textMuted: '#8a8a82' },
+        white: { name: 'AMOLED Dark', accent: '#aaaaaa', dark: '#555555', bgDeep: '#000000', bgLight: '#111111', sidebarBg: 'rgba(0, 0, 0, 0.85)', textMuted: '#777777' }
+
+         }
+
+        let currentThemeKey = localStorage.getItem("selectedTheme") || 'blue';
+        let isThemeAnimating = false;
+
+        function applyThemeStyles(theme) {
+            const root = document.documentElement;
+            root.style.setProperty('--accent', theme.accent);
+            root.style.setProperty('--accent-dark', theme.dark);
+            root.style.setProperty('--bg-deep', theme.bgDeep);
+            root.style.setProperty('--bg-light', theme.bgLight);
+            root.style.setProperty('--sidebar-bg', theme.sidebarBg);
+            root.style.setProperty('--text-muted', theme.textMuted);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeGridContainer = document.getElementById('themeGridContainer');
+            const startupThemeGrid = document.getElementById('startupThemeGrid');
+
+            for (const [key, theme] of Object.entries(themes)) {
+                let btn = document.createElement('button');
+                btn.className = `theme-preview-btn ${key === currentThemeKey ? 'active' : ''}`;
+                btn.onclick = () => window.triggerThemeWave(key, btn);
+                btn.title = theme.name;
+                let swatch = document.createElement('div');
+                swatch.className = 'theme-color-swatch';
+                swatch.style.background = `linear-gradient(135deg, ${theme.accent}, ${theme.dark})`;
+                btn.appendChild(swatch);
+                themeGridContainer.appendChild(btn);
+
+                let sBtn = document.createElement('button');
+                sBtn.className = `theme-preview-btn ${key === currentThemeKey ? 'active' : ''}`;
+                sBtn.title = theme.name;
+                sBtn.onclick = () => {
+                    document.getElementById('startupSelectedTheme').value = key;
+                    startupThemeGrid.querySelectorAll('.theme-preview-btn').forEach(b => b.classList.remove('active'));
+                    sBtn.classList.add('active');
+                };
+                let sSwatch = document.createElement('div');
+                sSwatch.className = 'theme-color-swatch';
+                sSwatch.style.background = `linear-gradient(135deg, ${theme.accent}, ${theme.dark})`;
+                sBtn.appendChild(sSwatch);
+                startupThemeGrid.appendChild(sBtn);
+            }
+
+            if(themes[currentThemeKey]) applyThemeStyles(themes[currentThemeKey]);
+            
+            if (localStorage.getItem('sb_cloak')) {
+                document.getElementById('cloakSelect').value = localStorage.getItem('sb_cloak');
+                document.getElementById('startupCloakSelect').value = localStorage.getItem('sb_cloak');
+                window.setCloak(localStorage.getItem('sb_cloak'));
+            }
+            if (localStorage.getItem('sb_name')) {
+                document.getElementById('brandTextDisplay').innerText = localStorage.getItem('sb_name');
+                document.getElementById('userName').value = localStorage.getItem('sb_name');
+            }
+            if (localStorage.getItem('sb_panic')) document.getElementById('panicUrlInput').value = localStorage.getItem('sb_panic');
+            if (localStorage.getItem('sb_autopanic')) document.getElementById('autoPanicSelect').value = localStorage.getItem('sb_autopanic');
+            
+            if (localStorage.getItem('sb_device') === 'mobile' || (window.innerWidth <= 768 && !localStorage.getItem('seaBeanStartupDone'))) {
+                document.body.classList.add('mobile-mode');
+                selectDevice('mobile', document.querySelectorAll('.device-btn')[1]);
+            }
+
+            setTimeout(() => {
+                const decoy = document.getElementById('studyzone-decoy');
+                decoy.style.opacity = '0';
+                setTimeout(() => {
+                    decoy.style.display = 'none';
+                    document.title = cloaks[localStorage.getItem('sb_cloak') || 'default'].title; 
+                    if (localStorage.getItem('seaBeanStartupDone') === 'true') {
+                        if (localStorage.getItem('seaBeanUpdateSeen') !== 'true') {
+                            document.getElementById('themeAnnouncementOverlay').classList.add('show');
+                            localStorage.setItem('seaBeanUpdateSeen', 'true');
+                        }
+                    } else {
+                        document.getElementById('startupOverlay').classList.add('show');
+                    }
+                }, 500);
+            }, 10);
+        });
+
+        window.triggerThemeWave = function(themeKey, clickedBtn) {
+            if ((themeKey === currentThemeKey && clickedBtn) || isThemeAnimating) return; 
+            const theme = themes[themeKey];
+            if (!theme) return;
+
+            isThemeAnimating = true;
+            document.querySelectorAll('#themeGridContainer .theme-preview-btn').forEach(b => b.classList.remove('active'));
+            if(clickedBtn) {
+                clickedBtn.classList.add('active');
+            } else {
+                const buttons = document.querySelectorAll('#themeGridContainer .theme-preview-btn');
+                const index = Object.keys(themes).indexOf(themeKey);
+                if(buttons[index]) buttons[index].classList.add('active');
+            }
+
+            document.getElementById('settingsOverlay').classList.remove('show'); 
+            const waveFill = document.getElementById("themeWaveFill");
+            const parallaxGroup = document.getElementById("transitionWaveGroup");
+
+            waveFill.style.background = theme.bgDeep;
+            if (parallaxGroup) {
+                parallaxGroup.innerHTML = `
+                    <use href="#theme-gentle-wave" x="48" y="0" fill="${theme.accent}" opacity="0.5" />
+                    <use href="#theme-gentle-wave" x="48" y="3" fill="${theme.accent}" opacity="0.7" />
+                    <use href="#theme-gentle-wave" x="48" y="5" fill="${theme.dark}" opacity="0.9" />
+                    <use href="#theme-gentle-wave" x="48" y="7" fill="${theme.bgDeep}" />
+                `;
+            }
+
+            void waveFill.offsetWidth; 
+            waveFill.classList.add('active');
+
+            setTimeout(() => {
+                applyThemeStyles(theme);
+                localStorage.setItem("selectedTheme", themeKey);
+                currentThemeKey = themeKey;
+                
+                const iframe = document.getElementById("mainFrame");
+                if (iframe && iframe.src) {
+                    iframe.style.opacity = '0';
+                    setTimeout(() => { iframe.src = iframe.src; iframe.onload = () => iframe.style.opacity = '1'; }, 50);
+                }
+                
+                setTimeout(() => {
+                    waveFill.classList.remove('active');
+                    setTimeout(() => { isThemeAnimating = false; }, 800);
+                }, 400); 
+            }, 800);
+        };
+
+        function selectDevice(type, element) {
+            document.querySelectorAll('.device-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('deviceSelection').value = type;
+        }
+
+        function finishStartup() {
+            const userName = document.getElementById('userName').value.trim();
+            const cloakSelect = document.getElementById('startupCloakSelect').value;
+            const deviceMode = document.getElementById('deviceSelection').value;
+            const themeKey = document.getElementById('startupSelectedTheme').value;
+
+            if (userName) { document.getElementById('brandTextDisplay').innerText = userName; localStorage.setItem('sb_name', userName); }
+            if (cloakSelect && window.setCloak) { window.setCloak(cloakSelect); document.getElementById('cloakSelect').value = cloakSelect; }
+            if (deviceMode === 'mobile') document.body.classList.add('mobile-mode');
+            else document.body.classList.remove('mobile-mode');
+            
+            localStorage.setItem('sb_device', deviceMode);
+            localStorage.setItem('seaBeanStartupDone', 'true');
+            localStorage.setItem('seaBeanUpdateSeen', 'true'); 
+
+            document.getElementById('startupOverlay').classList.remove('show');
+            window.triggerThemeWave(themeKey);
+        }
+
+        function handleSidebarHover(isEntering) {
+            if (document.body.classList.contains('mobile-mode')) return;
+            const sidebar = document.getElementById('sidebar');
+            const iframeWrap = document.getElementById('iframe-wrapper');
+            if (isEntering) { sidebar.classList.add('expanded'); iframeWrap.classList.add('blurred'); } 
+            else { sidebar.classList.remove('expanded'); iframeWrap.classList.remove('blurred'); }
+        }
+        
+        window.openSidebar = () => handleSidebarHover(true);
+        window.closeSidebar = () => handleSidebarHover(false);
+
+        function openSettings() { closeSidebar(); document.getElementById('settingsOverlay').classList.add('show'); }
+        function closeSettings(e) { if (e.target.id === 'settingsOverlay') document.getElementById('settingsOverlay').classList.remove('show'); }
+
+        let isPageLoading = false;
+        function loadPage(url, title, element) {
+            if (isPageLoading) return;
+            isPageLoading = true;
+
+            closeSidebar();
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            const waveFill = document.getElementById("loaderWaveFill");
+            const text = document.getElementById("loadingText");
+            const iframe = document.getElementById("mainFrame");
+            
+            void waveFill.offsetWidth;
+            waveFill.classList.add('active');
+            text.classList.add('active');
+
+            setTimeout(() => {
+                iframe.style.opacity = '0'; 
+                setTimeout(() => {
+                    iframe.src = url;
+                    iframe.onload = () => { iframe.style.opacity = '1'; };
+                    
+                    waveFill.classList.remove('active');
+                    text.classList.remove('active');
+
+                    setTimeout(() => { isPageLoading = false; }, 1500); 
+                }, 100); 
+            }, 1500); 
+        }
+
+        function closeAnnouncement() { document.getElementById('themeAnnouncementOverlay').classList.remove('show'); }
+        function closeAd() { document.getElementById('ad-container').classList.add('slide-out'); }
+        
+        function toggleMasterAds(checkbox) {
+            const adContainer = document.getElementById('ad-container');
+            if (checkbox.checked) { adContainer.style.display = 'flex'; setTimeout(() => adContainer.classList.remove('slide-out'), 10); } 
+            else { adContainer.style.display = 'none'; }
+        }
+        function toggleTurboAds(checkbox) {
+            const turboContainer = document.getElementById('turbo-ad-container');
+            if (checkbox.checked) {
+                turboContainer.innerHTML = '<div id="container-d86ba687c26fa8d5d6f109ee0bb1a5cc"></div>';
+                let script1 = document.createElement('script'); script1.async = true; script1.dataset.cfasync = "false";
+                script1.src = "https://pl28905166.effectivegatecpm.com/d86ba687c26fa8d5d6f109ee0bb1a5cc/invoke.js";
+                turboContainer.appendChild(script1);
+                let script2 = document.createElement('script'); script2.src = "https://pl28905160.effectivegatecpm.com/94/96/81/94968100b5c8d0d571fbab875ab34b22.js"; script2.id = "turbo-script-2";
+                document.body.appendChild(script2);
+            } else {
+                turboContainer.innerHTML = '';
+                let s2 = document.getElementById('turbo-script-2'); if(s2) s2.remove();
+            }
+        }
+    </script>
+</body>
+</html>

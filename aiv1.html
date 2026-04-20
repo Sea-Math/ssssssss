@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal AI</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <script src="bbno$.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg-dark: #0f1115;
+            --bg-input: rgba(27, 30, 36, 0.85);
+            --bg-hover: #262a33;
+            --text-main: #f3f4f6;
+            --text-muted: #8b949e;
+            --accent-blue: #3b82f6;
+            --grid-color: rgba(255, 255, 255, 0.015);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --font-ui: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-ui);
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 60px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+            max-width: 840px;
+            margin: 0 auto;
+            width: 100%;
+            scroll-behavior: smooth;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-top: 35vh;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #1f232b;
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: 20px;
+            max-width: 80%;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-wrap: break-word;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .chat-image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background: #000;
+        }
+        
+        .chat-image-preview:hover { opacity: 0.85; }
+
+        .file-attachment-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .file-attachment-pill:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .ai-message {
+            align-self: flex-start;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-left: 4px;
+        }
+
+        .ai-text {
+            font-size: 0.98rem;
+            line-height: 1.7;
+            color: #d1d5db;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+
+        .ai-text p { margin-bottom: 12px; }
+        .ai-text p:last-child { margin-bottom: 0; }
+        .ai-text h1, .ai-text h2, .ai-text h3, .ai-text h4 {
+            color: #fff;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .ai-text h1 { font-size: 1.5rem; }
+        .ai-text h2 { font-size: 1.3rem; }
+        .ai-text h3 { font-size: 1.15rem; }
+        .ai-text strong { color: #fff; font-weight: 600; }
+        .ai-text ul, .ai-text ol { margin-left: 24px; margin-bottom: 16px; }
+        .ai-text li { margin-bottom: 6px; }
+        
+        .ai-text code { 
+            background: #191c21; 
+            padding: 3px 6px; 
+            border-radius: 6px; 
+            font-family: monospace; 
+            font-size: 0.9em; 
+            border: 1px solid var(--border-color); 
+        }
+        .ai-text pre { 
+            background: #191c21; 
+            padding: 16px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+            overflow-x: auto; 
+            margin-top: 12px; 
+            margin-bottom: 16px;
+        }
+        .ai-text pre code { 
+            border: none; 
+            padding: 0; 
+            background: transparent; 
+            font-size: 0.9em;
+        }
+        
+        .ai-text table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+        .ai-text th, .ai-text td {
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .ai-text th {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-weight: 600;
+        }
+        .ai-text tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .ai-text blockquote {
+            border-left: 4px solid var(--border-color);
+            padding-left: 12px;
+            margin: 12px 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .pdf-document-wrapper {
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            position: relative;
+            font-family: Arial, sans-serif;
+            border: 1px solid #ddd;
+        }
+        
+        .pdf-document-wrapper h1, 
+        .pdf-document-wrapper h2, 
+        .pdf-document-wrapper h3, 
+        .pdf-document-wrapper p, 
+        .pdf-document-wrapper li {
+            color: #000000 !important;
+            margin-bottom: 12px;
+        }
+
+        .download-specific-pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .download-specific-pdf-btn:hover { background-color: #2563eb; }
+        .download-specific-pdf-btn:active { transform: scale(0.97); }
+
+        .thinking-dots {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            height: 24px;
+            padding: 4px 0;
+        }
+        .thinking-dots span {
+            width: 5px;
+            height: 5px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            animation: pulse 1.4s infinite ease-in-out both;
+        }
+        .thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; background-color: var(--text-main); }
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .message-row:hover .action-bar { opacity: 1; }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .action-btn:hover {
+            color: var(--text-main);
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .action-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
+
+        .input-area {
+            padding: 0 20px 40px 20px;
+            display: flex;
+            justify-content: center;
+            background: linear-gradient(transparent, var(--bg-dark) 80%);
+            position: relative;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            background-color: var(--bg-input);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 10px 14px;
+            width: 100%;
+            max-width: 780px;
+            gap: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: border-color 0.3s;
+        }
+        
+        .input-container:focus-within { border-color: rgba(255, 255, 255, 0.2); }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .icon-btn svg { width: 20px; height: 20px; stroke-width: 1.75; }
+
+        .text-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 0.98rem;
+            line-height: 1.5;
+            min-height: 40px;
+            max-height: 150px;
+            padding: 8px 8px;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        .text-input::placeholder { color: #6b7280; }
+
+        .dropdown { position: relative; display: flex; align-items: center; margin-bottom: 2px; }
+
+        .model-selector-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-right: auto;
+        }
+        .model-selector-btn:hover { background-color: var(--bg-hover); color: var(--text-main); }
+        .model-selector-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
+
+        .dropdown-menu {
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 0;
+            background-color: #1e222a;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 6px;
+            width: 250px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            transform-origin: bottom left;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+            animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes menuPop {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-main);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover { background-color: var(--bg-hover); }
+        .dropdown-item .icon { color: var(--text-muted); width: 16px; height: 16px; }
+        
+        .send-btn { color: var(--text-muted); }
+        .send-btn.active { color: var(--text-main); background: var(--accent-blue); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2d333b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444c56; }
+        svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        .viewer-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .viewer-modal.show {
+            display: flex;
+        }
+        
+        .viewer-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: auto;
+            padding: 30px;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            font-family: monospace;
+        }
+        
+        .viewer-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        
+        .viewer-close:hover { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <div id="chat-history">
+            <div class="welcome-text" id="welcome-msg">Type a request to begin.</div>
+        </div>
+
+        <input type="file" id="file-upload" accept="image/*,.pdf,.txt,.md,.json,.csv" style="display: none;">
+
+        <div class="input-area">
+            <div class="input-container">
+                <div class="dropdown">
+                    <button class="model-selector-btn" id="model-toggle" onclick="toggleMenu('model-menu')">
+                        <svg viewBox="0 0 24 24"><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/><path d="M12 8V4"/><path d="M10 4h4"/></svg>
+                        <span id="current-model-name">Gemini 2.0 (Vision)</span>
+                    </button>
+                    
+                    <div class="dropdown-menu" id="model-menu">
+                        <button class="dropdown-item" onclick="selectModel('Gemini 2.0 (Vision)')">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                            Gemini 2.0 (Vision)
+                        </button>
+                        <button class="dropdown-item" onclick="selectModel('minimax')">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"/></svg>
+                            minimax
+                        </button>
+                    </div>
+                </div>
+
+                <button class="icon-btn" onclick="document.getElementById('file-upload').click()" title="Attach File or Image">
+                    <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+
+                <textarea class="text-input" id="user-input" placeholder="Message AI... (Paste images directly)" rows="1" oninput="autoResize(this)" onkeydown="handleKeyPress(event)"></textarea>
+
+                <button class="icon-btn send-btn" id="send-btn" onclick="handleSend()">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer-modal" class="viewer-modal">
+        <span class="viewer-close" onclick="closeViewer()">&times;</span>
+        <div id="viewer-content" class="viewer-content"></div>
+    </div>
+
+    <script>
+        marked.use({ breaks: true });
+
+        let API_KEY = "";
+        
+        
+        try {
+            if (typeof bbnoSecret !== 'undefined' && bbnoSecret.trim() !== "") {
+                API_KEY = atob(bbnoSecret.trim());
+            }
+        } catch (e) {}
+        
+        const MODEL_MAP = {
+            'Gemini 2.0 (Vision)': 'nvidia/nemotron-3-nano-30b-a3b:free',
+            'minimax': 'minimax/minimax-m2.5:free'
+        };
+
+        let currentUIModel = 'Gemini 2.0 (Vision)';
+        let isGenerating = false;
+        
+        
+        let chatContext = [{ 
+            role: "system", 
+            content: "You are sea man AI , a highly capable, conversational AI assistant. You MUST ALWAYS respond in standard markdown text format. NEVER output your response wrapped in a JSON object (Do not output {\"request\": \"...\", \"answer\": \"...\"}). Just answer naturally. If the user explicitly asks to generate a PDF, create a document, or says 'pdf document', you MUST wrap the exact content of that document inside a standard HTML div with the class 'pdf-document-wrapper'. Example: <div class='pdf-document-wrapper'><h1>Title</h1><p>Content</p></div>. Use standard HTML tags inside the div so it renders as a clean document." 
+        }];
+        
+        let fileData = null;
+        let fileName = null;
+        let fileType = null;
+        let baseDataCache = null;
+        
+        const fileStorage = {};
+        let fileIdCounter = 0;
+
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+            checkInput();
+        }
+
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            const isShowing = menu.classList.contains('show');
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            if (!isShowing) menu.classList.add('show');
+        }
+
+        function selectModel(modelName) {
+            currentUIModel = modelName;
+            document.getElementById('current-model-name').innerText = modelName;
+            toggleMenu('model-menu');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        document.getElementById('file-upload').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            processFile(file);
+        });
+
+        document.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    processFile(blob);
+                }
+            }
+        });
+
+        function processFile(file) {
+            fileName = file.name || "Pasted_Image.png";
+            
+            if (file.type.startsWith('image/')) {
+                document.getElementById('user-input').placeholder = `Processing image...`;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 1000; 
+                        
+                        if (width > height && width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        } else if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        baseDataCache = canvas.toDataURL('image/jpeg', 0.85); 
+                        fileData = "Base64 image loaded. Refer to vision payload.";
+                        fileType = 'image';
+                        document.getElementById('user-input').placeholder = `Image Attached`;
+                        checkInput();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            } 
+            else if (file.type === 'application/pdf') {
+                document.getElementById('user-input').placeholder = `Extracting PDF...`;
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+                        let fullText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+                        }
+                        fileData = fullText;
+                        fileType = 'text'; 
+                        baseDataCache = null;
+                        document.getElementById('user-input').placeholder = `PDF Attached`;
+                    } catch (err) {
+                        alert("Error reading PDF content.");
+                        document.getElementById('user-input').placeholder = "Message AI... (Paste images directly)";
+                    } finally {
+                        checkInput();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } 
+            else {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fileData = event.target.result;
+                    fileType = 'text';
+                    baseDataCache = null;
+                    document.getElementById('user-input').placeholder = `File Attached`;
+                    checkInput();
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function checkInput() {
+            const val = document.getElementById('user-input').value.trim();
+            const btn = document.getElementById('send-btn');
+            if(val.length > 0 || fileData) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!isGenerating) handleSend();
+            }
+        }
+
+        function openViewer(type, contentOrId) {
+            const modal = document.getElementById('viewer-modal');
+            const contentDiv = document.getElementById('viewer-content');
+            
+            if (type === 'image') {
+                contentDiv.innerHTML = `<img src="${contentOrId}" alt="Viewed Image">`;
+                contentDiv.style.background = 'transparent';
+                contentDiv.style.border = 'none';
+                contentDiv.style.padding = '0';
+            } else if (type === 'text') {
+                contentDiv.innerHTML = (fileStorage[contentOrId] || 'Content not found.').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                contentDiv.style.background = '#f8f9fa';
+                contentDiv.style.color = '#000';
+                contentDiv.style.border = '1px solid #ccc';
+                contentDiv.style.padding = '40px';
+                contentDiv.style.borderRadius = '8px';
+            }
+            
+            modal.classList.add('show');
+        }
+
+        function closeViewer() {
+            const modal = document.getElementById('viewer-modal');
+            modal.classList.remove('show');
+            document.getElementById('viewer-content').innerHTML = '';
+        }
+
+        document.getElementById('viewer-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewer();
+        });
+
+        function downloadHTML(btn) {
+            const aiMessage = btn.closest('.ai-message');
+            const aiText = aiMessage.querySelector('.ai-text');
+            const codeBlock = aiText.querySelector('pre code');
+            
+            let contentToSave = '';
+            
+            if (codeBlock) {
+                contentToSave = codeBlock.innerText;
+            } else {
+                contentToSave = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Document</title>\n<style>\nbody { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 2rem; }\npre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }\ncode { font-family: monospace; }\ntable { border-collapse: collapse; width: 100%; margin: 1rem 0; }\nth, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\nth { background-color: #f8f8f8; }\nblockquote { border-left: 4px solid #ddd; padding-left: 1rem; margin-left: 0; color: #666; }\n</style>\n</head>\n<body>\n${aiText.innerHTML}\n</body>\n</html>`;
+            }
+
+            const blob = new Blob([contentToSave], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadPDF(btn) {
+            const content = btn.closest('.ai-message').querySelector('.ai-text');
+            const clone = content.cloneNode(true);
+            
+            clone.style.backgroundColor = '#ffffff';
+            clone.style.color = '#000000';
+            clone.style.padding = '40px';
+            clone.style.fontFamily = 'Arial, sans-serif';
+            
+            const allElements = clone.querySelectorAll('*');
+            for(let i = 0; i < allElements.length; i++) {
+                allElements[i].style.color = '#000000';
+                if (allElements[i].tagName === 'PRE') {
+                    allElements[i].style.backgroundColor = '#f8f9fa';
+                    allElements[i].style.border = '1px solid #e9ecef';
+                    allElements[i].style.whiteSpace = 'pre-wrap'; 
+                    allElements[i].style.wordBreak = 'break-word';
+                }
+                if (allElements[i].tagName === 'TH' || allElements[i].tagName === 'TD') {
+                    allElements[i].style.borderColor = '#dee2e6';
+                }
+            }
+
+            const wrappers = clone.querySelectorAll('.pdf-document-wrapper');
+            wrappers.forEach(w => {
+                w.style.boxShadow = 'none';
+                w.style.border = 'none';
+                w.style.padding = '0';
+                const dlBtn = w.querySelector('.download-specific-pdf-btn');
+                if(dlBtn) dlBtn.remove();
+            });
+
+            document.body.appendChild(clone);
+
+            const opt = {
+                margin:       [0.5, 0.5, 0.5, 0.5],
+                filename:     'document.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(clone).save().then(() => {
+                document.body.removeChild(clone);
+            });
+        }
+
+        async function handleSend(isRedo = false) {
+            if (isGenerating) return;
+            
+            if (!API_KEY || API_KEY.trim() === "") {
+                alert("API Key is missing or invalid. Please check your base64 string in bbno$.js.");
+                return;
+            }
+
+            const inputField = document.getElementById("user-input");
+            let messageText = inputField.value.trim();
+            const targetModelID = MODEL_MAP[currentUIModel];
+
+            if (isRedo && chatContext.length >= 2) {
+                chatContext.pop(); 
+                if(chatContext.length > 1) {
+                    const lastUser = chatContext[chatContext.length - 1];
+                    messageText = Array.isArray(lastUser.content) ? lastUser.content[0].text : lastUser.content;
+                }
+            } else {
+                if (messageText === "" && !fileData) return;
+                const welcome = document.getElementById("welcome-msg");
+                if (welcome) welcome.remove();
+                
+                appendUserMessage(messageText, fileName, fileData, fileType, baseDataCache);
+                inputField.value = "";
+                inputField.style.height = 'auto';
+                
+                let msgContent = messageText;
+                
+                if(fileData) {
+                    if (fileType === 'image' && baseDataCache) {
+                        msgContent = [
+                            { type: "text", text: messageText ? messageText : "Analyze this image." },
+                            { type: "image_url", image_url: { url: baseDataCache } }
+                        ];
+                    } else {
+                        msgContent = messageText + (messageText ? `\n\n` : ``) + `--- Attached File (${fileName}) ---\n${fileData}\n--- End File ---`;
+                    }
+                }
+                
+                chatContext.push({ role: "user", content: msgContent });
+            }
+
+            isGenerating = true; 
+            fileData = null;
+            fileName = null;
+            fileType = null;
+            baseDataCache = null;
+            inputField.placeholder = "Message AI... (Paste images directly)";
+            document.getElementById('file-upload').value = '';
+            checkInput();
+
+            const aiMessageDiv = appendAIMessage('<div class="thinking-dots"><span></span><span></span><span></span></div>'); 
+
+            try {
+                const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST", 
+                    headers: { 
+                        "Authorization": `Bearer ${API_KEY}`, 
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": window.location.origin,
+                        "X-Title": "Terminal AI"
+                    },
+                    body: JSON.stringify({ model: targetModelID, messages: chatContext })
+                });
+                const data = await res.json();
+                
+                if (data.error && data.error.message) {
+                     aiMessageDiv.querySelector('.ai-text').innerText = `API Error: ${data.error.message}`;
+                     chatContext.pop();
+                } else if (data.choices && data.choices.length > 0) {
+                    let rawText = data.choices[0].message.content;
+                    
+                    
+                    try {
+                        const parsed = JSON.parse(rawText);
+                        if (parsed && parsed.answer) {
+                            rawText = parsed.answer;
+                        }
+                    } catch (e) {
+                        
+                    }
+
+                    const parsedHTML = marked.parse(rawText);
+                    const textContainer = aiMessageDiv.querySelector('.ai-text');
+                    textContainer.innerHTML = parsedHTML;
+
+                    const pdfWrappers = textContainer.querySelectorAll('.pdf-document-wrapper');
+                    pdfWrappers.forEach(wrapper => {
+                        const dlButton = document.createElement('button');
+                        dlButton.className = 'download-specific-pdf-btn';
+                        dlButton.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download as PDF`;
+                        
+                        dlButton.onclick = function() {
+                            const clone = wrapper.cloneNode(true);
+                            clone.removeChild(clone.lastChild); 
+                            
+                            const opt = {
+                                margin:       [0.75, 0.75, 0.75, 0.75],
+                                filename:     'Generated_Document.pdf',
+                                image:        { type: 'jpeg', quality: 1 },
+                                html2canvas:  { scale: 2, useCORS: true },
+                                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+                                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                            };
+                            
+                            document.body.appendChild(clone);
+                            html2pdf().set(opt).from(clone).save().then(() => {
+                                document.body.removeChild(clone);
+                            });
+                        };
+                        wrapper.appendChild(dlButton);
+                    });
+
+                    chatContext.push({ role: "assistant", content: rawText });
+                } else {
+                    aiMessageDiv.querySelector('.ai-text').innerText = `Error: ${JSON.stringify(data)}`;
+                    chatContext.pop(); 
+                }
+            } catch (err) { 
+                aiMessageDiv.querySelector('.ai-text').innerText = "Network transmission failed. Check API key and internet connection."; 
+                chatContext.pop();
+            } finally {
+                isGenerating = false; 
+                inputField.focus();
+                checkInput();
+            }
+        }
+
+        function appendUserMessage(text, attachedName, attachedData, attachedType, baseRender) {
+            const chatHistory = document.getElementById("chat-history");
+            const div = document.createElement("div");
+            div.className = "message-row";
+            
+            let attachmentHTML = '';
+            if (attachedName) {
+                if (attachedType === 'image' && baseRender) {
+                    attachmentHTML = `<img src="${baseRender}" alt="${attachedName}" class="chat-image-preview" onclick="openViewer('image', this.src)" title="Click to view">`;
+                } else {
+                    const fileId = 'file_' + (++fileIdCounter);
+                    fileStorage[fileId] = attachedData;
+                    attachmentHTML = `
+                    <div class="file-attachment-pill" onclick="openViewer('text', '${fileId}')" title="Click to view file content">
+                        <svg viewBox="0 0 24 24" width="14" height="14"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                        ${attachedName}
+                    </div><br>`;
+                }
+            }
+            
+            const lineBreak = (attachmentHTML && text && attachedType === 'image') ? '<br>' : '';
+            div.innerHTML = `<div class="user-message">${attachmentHTML}${lineBreak}${text.replace(/\n/g, '<br>')}</div>`;
+            chatHistory.appendChild(div);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function appendAIMessage(content) {
+            const chatHistory = document.getElementById("chat-history");
+            const div = document.createElement("div");
+            div.className = "message-row";
+
+            div.innerHTML = `
+                <div class="ai-message">
+                    <div class="ai-text">${content}</div>
+                    <div class="action-bar">
+                        <button class="action-btn" title="Download HTML Thread" onclick="downloadHTML(this)">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="10 12 8 14 10 16"/><polyline points="14 12 16 14 14 16"/></svg>
+                        </button>
+                        <button class="action-btn" title="Download as PDF" onclick="downloadPDF(this)">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                        </button>
+                        <button class="action-btn" onclick="copyText(this)" title="Copy Text">
+                            <svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        </button>
+                        <button class="action-btn" onclick="handleSend(true)" title="Regenerate">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                    </div>
+                </div>`;
+            
+            chatHistory.appendChild(div);
+            window.scrollTo(0, document.body.scrollHeight);
+            return div;
+        }
+
+        function copyText(btn) {
+            const textToCopy = btn.closest('.ai-message').querySelector('.ai-text').innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const origIcon = btn.innerHTML;
+                btn.innerHTML = `<svg viewBox="0 0 24 24" style="color:var(--text-main)"><path d="M20 6 9 17l-5-5"/></svg>`;
+                setTimeout(() => btn.innerHTML = origIcon, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
