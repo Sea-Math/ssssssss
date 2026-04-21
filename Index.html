@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>StudyZone - Middle School Learning</title>
+    <title>Maddo Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" id="favicon" href="">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,14 +47,14 @@
         #studyzone-decoy table td strong { color: #003d7a; }
 
         :root {
-            --accent: #00d2ff;
-            --accent-dark: #0077ff;
-            --bg-deep: #000814;
-            --bg-light: #001f3f;
-            --sidebar-bg: rgba(0, 8, 20, 0.85);
-            --text-heading: #d4d4d8;
-            --text-main: #a1a1aa;
-            --text-muted: #6b8cae;
+            --accent: #ffffff;
+            --accent-dark: #d9d9d9;
+            --bg-deep: #000000;
+            --bg-light: #121212;
+            --sidebar-bg: rgba(0, 0, 0, 0.92);
+            --text-heading: #ffffff;
+            --text-main: #d4d4d4;
+            --text-muted: #a3a3a3;
             --sidebar-w-expanded: 260px;
             --sidebar-w-collapsed: 85px;
             --glass-border: rgba(255,255,255,0.08);
@@ -78,7 +78,6 @@
             filter: brightness(0.8) !important;
             transform: none !important;
         }
-        body.low-performance .parallax > use { animation: none !important; }
 
         body.ultra-fast *, body.ultra-fast *::before, body.ultra-fast *::after {
             animation: none !important;
@@ -115,13 +114,8 @@
 
         body::after {
             content: ''; position: fixed; inset: 0; z-index: -1;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 40px 40px;
-            mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-            opacity: 0.7;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0.6;
         }
 
         #sidebar {
@@ -208,8 +202,6 @@
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
         }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-
-        #startupOverlay { z-index: 6000; background: var(--bg-deep); backdrop-filter: none; transition: background-color var(--anim-smooth), opacity 0.6s ease; }
 
         .modal-content {
             background: var(--bg-deep); border: 1px solid var(--glass-border); border-radius: 24px;
@@ -301,47 +293,20 @@
         .ad-close-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border-radius: 8px;}
         .ad-close-btn:hover { color: var(--text-heading); background: var(--bg-light); transform: scale(1.1);}
         .ad-close-btn .lucide { width: 16px; height: 16px; }
-
-        .wave-wrapper {
-            position: fixed; inset: 0; z-index: 5001;
-            pointer-events: none; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: flex-end;
-        }
-        .wave-fill {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 100vh;
-            background: var(--bg-deep);
-            transform: translate3d(0, 120%, 0);
-            will-change: transform;
-            transition: transform var(--anim-smooth);
-            box-shadow: 0 -10px 50px rgba(0,0,0,0.5);
-        }
-        .wave-fill.active { transform: translate3d(0, 0%, 0); }
-
-        .svg-waves {
-            position: absolute; bottom: 99.5%; left: 0;
-            width: 100%; height: 15vh; min-height: 100px;
+        .blur-overlay {
+            position: absolute;
+            inset: 0;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        .parallax > use { animation: none; }
-        .wave-fill.active .parallax > use { animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite; }
-        .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
-        .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
-        .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
-        .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
-
-        @keyframes move-forever { 0% { transform: translate3d(-90px,0,0); } 100% { transform: translate3d(85px,0,0); } }
-
-        #loaderOverlay { z-index: 4500; position: absolute; inset: 0; }
-        #loaderOverlay .wave-fill {
-            height: 100%;
-            background: var(--bg-deep);
-            backdrop-filter: none; -webkit-backdrop-filter: none;
-            box-shadow: none;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 1.5s cubic-bezier(0.65, 0, 0.35, 1);
-        }
-        #loaderOverlay .svg-waves { height: 120px; }
+        .blur-overlay.active { opacity: 1; }
         .loading-text {
             font-size: 20px; letter-spacing: 8px; color: var(--text-heading);
             font-weight: 700; text-transform: uppercase; text-align: center;
@@ -393,61 +358,13 @@
         </div>
     </div>
 
-    <div id="startupOverlay" class="modal-overlay">
-        <div class="modal-content startup-modal">
-            <h2>Welcome to Sea Bean</h2>
-            <p class="subtitle">Customize your portal before diving in.</p>
-
-            <div class="setting-group">
-                <label>What's your name?</label>
-                <input type="text" id="userName" class="settings-input" placeholder="Enter name..." autocomplete="off">
-            </div>
-
-            <div class="setting-group">
-                <label>Select Theme</label>
-                <div class="theme-grid" id="startupThemeGrid"></div>
-                <input type="hidden" id="startupSelectedTheme" value="blue">
-            </div>
-
-            <div class="setting-group">
-                <label>Device Mode</label>
-                <div class="device-toggle">
-                    <div class="device-btn active" onclick="selectDevice('desktop', this)">
-                        <i data-lucide="monitor"></i>
-                        <span>Computer</span>
-                    </div>
-                    <div class="device-btn" onclick="selectDevice('mobile', this)">
-                        <i data-lucide="smartphone"></i>
-                        <span>Mobile</span>
-                    </div>
-                </div>
-                <input type="hidden" id="deviceSelection" value="desktop">
-            </div>
-
-            <div class="setting-group">
-                <label>Disguise Portal As</label>
-                <select id="startupCloakSelect" class="settings-select" onchange="if(window.setCloak) window.setCloak(this.value)">
-                    <option value="default">None (Default)</option>
-                    <option value="google">Google</option>
-                    <option value="drive">Google Drive</option>
-                    <option value="ixl">IXL | Learning</option>
-                    <option value="canvas">Canvas Dashboard</option>
-                </select>
-            </div>
-
-            <button class="btn-stealth startup-btn" onclick="finishStartup()">
-                Catch the wave <i data-lucide="waves"></i>
-            </button>
-        </div>
-    </div>
-
     <nav id="sidebar" onmouseenter="handleSidebarHover(true)" onmouseleave="handleSidebarHover(false)">
         <div class="sidebar-inner">
             <div class="sidebar-brand">
                 <div class="brand-icon-wrapper">
-                    <div class="brand-icon"><i data-lucide="waves"></i></div>
+                    <div class="brand-icon"><i data-lucide="box"></i></div>
                 </div>
-                <div class="brand-text" id="brandTextDisplay">sea bean</div>
+                <div class="brand-text" id="brandTextDisplay">maddo</div>
             </div>
 
             <a class="nav-item active" onclick="loadPage('/pages/home/', 'Home', this)">
@@ -462,13 +379,13 @@
                 <div class="icon-container"><i data-lucide="message-square"></i></div>
                 <span class="nav-text">Chat</span>
             </a>
-            <a class="nav-item" onclick="loadPage('/tusd.html', 'Browse dah web', this)">
+            <a class="nav-item" onclick="loadPage('/tusd.html', 'Proxy', this)">
                 <div class="icon-container"><i data-lucide="compass"></i></div>
-                <span class="nav-text">Browse</span>
+                <span class="nav-text">Proxy</span>
             </a>
-            <a class="nav-item" onclick="loadPage('/aiv1.html', 'talk to smart man', this)">
+            <a class="nav-item" onclick="loadPage('/aiv1.html', 'AI', this)">
                 <div class="icon-container"><i data-lucide="bot"></i></div>
-                <span class="nav-text">Ai</span>
+                <span class="nav-text">AI</span>
             </a>
             <a class="nav-item" onclick="loadPage('/music.html', 'Music', this)">
                 <div class="icon-container"><i data-lucide="music"></i></div>
@@ -508,36 +425,11 @@
         <div id="iframe-wrapper">
             <iframe id="mainFrame" src="/pages/home/"></iframe>
 
-            <div id="loaderOverlay" class="wave-wrapper">
-                <div id="loaderWaveFill" class="wave-fill">
-                    <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
-                        <defs><path id="loader-gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
-                        <g class="parallax">
-                            <use href="#loader-gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.4" />
-                            <use href="#loader-gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.6" />
-                            <use href="#loader-gentle-wave" x="48" y="5" fill="var(--accent-dark)" opacity="0.8" />
-                            <use href="#loader-gentle-wave" x="48" y="7" fill="var(--bg-deep)" />
-                        </g>
-                    </svg>
-                    <div class="loading-text" id="loadingText">LOADING...</div>
-                </div>
-            </div>
+            <div id="loaderOverlay" class="blur-overlay"><div class="loading-text" id="loadingText">Loading...</div></div>
         </div>
     </main>
 
-    <div id="themeTransitionOverlay" class="wave-wrapper">
-        <div id="themeWaveFill" class="wave-fill">
-            <svg class="svg-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
-                <defs><path id="theme-gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" /></defs>
-                <g class="parallax" id="transitionWaveGroup">
-                    <use href="#theme-gentle-wave" x="48" y="0" fill="var(--accent)" opacity="0.5" />
-                    <use href="#theme-gentle-wave" x="48" y="3" fill="var(--accent)" opacity="0.7" />
-                    <use href="#theme-gentle-wave" x="48" y="5" fill="var(--dark)" opacity="0.9" />
-                    <use href="#theme-gentle-wave" x="48" y="7" fill="var(--bg-deep)" />
-                </g>
-            </svg>
-        </div>
-    </div>
+    <div id="themeTransitionOverlay" class="blur-overlay"></div>
 
     <div id="ad-container">
         <div class="ad-header">
@@ -575,8 +467,6 @@
                 </label>
             </div>
 
-            <div class="settings-section-title"><i data-lucide="palette"></i> Appearance</div>
-            <div class="theme-grid" id="themeGridContainer"></div>
 
             <div class="settings-section-title"><i data-lucide="ghost"></i> Privacy & Stealth</div>
             <div class="setting-group">
@@ -609,44 +499,6 @@
         </div>
     </div>
 
-    <div id="themeAnnouncementOverlay" class="modal-overlay">
-        <div class="modal-content announcement-modal">
-            <div class="announcement-header">
-                <i data-lucide="waves"></i>
-                <span id="announceTitle">better update???</span>
-            </div>
-
-            <div class="announcement-content" id="announceContent">
-                <div class="update-item">
-                    <div class="update-icon"><i data-lucide="eye-off"></i></div>
-                    <div class="update-text">
-                        <h4>Lights Out</h4>
-                        <p>We've turned off the bright neons, glows, and harsh whites to protect your eyes.</p>
-                    </div>
-                </div>
-                <div class="update-item">
-                    <div class="update-icon"><i data-lucide="smartphone"></i></div>
-                    <div class="update-text">
-                        <h4>Mobile Ready</h4>
-                        <p>You can now toggle mobile mode for a native app-like experience on smaller screens.</p>
-                    </div>
-                </div>
-                <div class="update-item">
-                    <div class="update-icon"><i data-lucide="wind"></i></div>
-                    <div class="update-text">
-                        <h4>Silky Smooth</h4>
-                        <p>Added custom animations and snappy transitions across the entire platform.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="announcement-footer">
-                <button class="btn-announce-secondary" onclick="console.log('Redirect to changelog')">Changelog</button>
-                <button class="btn-announce-primary" onclick="closeAnnouncement()">Awesome</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         lucide.createIcons();
 
@@ -660,7 +512,7 @@
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && window.autoPanic) window.location.replace(window.panicUrl); });
 
         const cloaks = {
-            default: { title: "StudyZone - Middle School Learning", icon: "" },
+            default: { title: "Maddo Portal", icon: "" },
             google: { title: "Google", icon: "https://www.google.com/favicon.ico" },
             drive: { title: "My Drive - Google Drive", icon: "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png" },
             ixl: { title: "IXL | Math, Language Arts, Science, Social Studies, and Spanish", icon: "https://www.ixl.com/ixl-favicon.png" },
@@ -684,22 +536,7 @@
                 window.location.replace(window.panicUrl);
             } else { alert('Popup blocker prevented opening about:blank'); }
         };
-
-        const themes = {
-           blue: { name: 'Ocean Blue', accent: '#00d2ff', dark: '#0077ff', bgDeep: '#000814', bgLight: '#001f3f', sidebarBg: 'rgba(0, 8, 20, 0.85)', textMuted: '#6b8cae' },
-        purple: { name: 'Neon Purple', accent: '#d500ff', dark: '#7b00ff', bgDeep: '#0d0014', bgLight: '#2b004d', sidebarBg: 'rgba(13, 0, 20, 0.85)', textMuted: '#a37ec4' },
-        red: { name: 'Crimson Red', accent: '#ff3333', dark: '#b30000', bgDeep: '#140000', bgLight: '#3d0000', sidebarBg: 'rgba(20, 0, 0, 0.85)', textMuted: '#c47e7e' },
-        green: { name: 'Forest Green', accent: '#00ff88', dark: '#00aa55', bgDeep: '#001408', bgLight: '#003617', sidebarBg: 'rgba(0, 20, 8, 0.85)', textMuted: '#67a886' },
-        orange: { name: 'Sunset Orange', accent: '#ff9900', dark: '#cc5500', bgDeep: '#1a0800', bgLight: '#3d1400', sidebarBg: 'rgba(26, 8, 0, 0.85)', textMuted: '#ba8c6c' },
-        pink: { name: 'Sakura Pink', accent: '#ff99cc', dark: '#cc0066', bgDeep: '#1a000d', bgLight: '#4d0026', sidebarBg: 'rgba(26, 0, 13, 0.85)', textMuted: '#c989a9' },
-        dark: { name: 'Midnight Dark', accent: '#aaaaaa', dark: '#555555', bgDeep: '#050505', bgLight: '#1a1a1a', sidebarBg: 'rgba(5, 5, 5, 0.85)', textMuted: '#888888' },
-        yellow: { name: 'Midnight Lemon', accent: '#FDE047', dark: '#CA8A04', bgDeep: '#050505', bgLight: '#1a1a17', sidebarBg: 'rgba(5, 5, 5, 0.85)', textMuted: '#8a8a82' },
-        white: { name: 'AMOLED Dark', accent: '#aaaaaa', dark: '#555555', bgDeep: '#000000', bgLight: '#111111', sidebarBg: 'rgba(0, 0, 0, 0.85)', textMuted: '#777777' }
-
-         }
-
-        let currentThemeKey = localStorage.getItem("selectedTheme") || 'blue';
-        let isThemeAnimating = false;
+        const fixedTheme = { accent: '#ffffff', dark: '#d9d9d9', bgDeep: '#000000', bgLight: '#121212', sidebarBg: 'rgba(0, 0, 0, 0.92)', textMuted: '#a3a3a3' };
         const lowPerfMode = localStorage.getItem('sb_lowperf') === 'true' ||
             window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
             (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
@@ -719,52 +556,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const themeGridContainer = document.getElementById('themeGridContainer');
-            const startupThemeGrid = document.getElementById('startupThemeGrid');
-
-            for (const [key, theme] of Object.entries(themes)) {
-                let btn = document.createElement('button');
-                btn.className = `theme-preview-btn ${key === currentThemeKey ? 'active' : ''}`;
-                btn.onclick = () => window.triggerThemeWave(key, btn);
-                btn.title = theme.name;
-                let swatch = document.createElement('div');
-                swatch.className = 'theme-color-swatch';
-                swatch.style.background = `linear-gradient(135deg, ${theme.accent}, ${theme.dark})`;
-                btn.appendChild(swatch);
-                themeGridContainer.appendChild(btn);
-
-                let sBtn = document.createElement('button');
-                sBtn.className = `theme-preview-btn ${key === currentThemeKey ? 'active' : ''}`;
-                sBtn.title = theme.name;
-                sBtn.onclick = () => {
-                    document.getElementById('startupSelectedTheme').value = key;
-                    startupThemeGrid.querySelectorAll('.theme-preview-btn').forEach(b => b.classList.remove('active'));
-                    sBtn.classList.add('active');
-                };
-                let sSwatch = document.createElement('div');
-                sSwatch.className = 'theme-color-swatch';
-                sSwatch.style.background = `linear-gradient(135deg, ${theme.accent}, ${theme.dark})`;
-                sBtn.appendChild(sSwatch);
-                startupThemeGrid.appendChild(sBtn);
-            }
-
-            if(themes[currentThemeKey]) applyThemeStyles(themes[currentThemeKey]);
+            applyThemeStyles(fixedTheme);
 
             if (localStorage.getItem('sb_cloak')) {
                 document.getElementById('cloakSelect').value = localStorage.getItem('sb_cloak');
-                document.getElementById('startupCloakSelect').value = localStorage.getItem('sb_cloak');
                 window.setCloak(localStorage.getItem('sb_cloak'));
             }
             if (localStorage.getItem('sb_name')) {
                 document.getElementById('brandTextDisplay').innerText = localStorage.getItem('sb_name');
-                document.getElementById('userName').value = localStorage.getItem('sb_name');
             }
             if (localStorage.getItem('sb_panic')) document.getElementById('panicUrlInput').value = localStorage.getItem('sb_panic');
             if (localStorage.getItem('sb_autopanic')) document.getElementById('autoPanicSelect').value = localStorage.getItem('sb_autopanic');
 
-            if (localStorage.getItem('sb_device') === 'mobile' || (window.innerWidth <= 768 && !localStorage.getItem('seaBeanStartupDone'))) {
+            if (localStorage.getItem('sb_device') === 'mobile' || window.innerWidth <= 768) {
                 document.body.classList.add('mobile-mode');
-                selectDevice('mobile', document.querySelectorAll('.device-btn')[1]);
             }
 
             const decoy = document.getElementById('studyzone-decoy');
@@ -778,99 +583,11 @@
             }
 
             document.title = cloaks[localStorage.getItem('sb_cloak') || 'default'].title;
-            if (localStorage.getItem('seaBeanStartupDone') === 'true') {
-                if (localStorage.getItem('seaBeanUpdateSeen') !== 'true') {
-                    document.getElementById('themeAnnouncementOverlay').classList.add('show');
-                    localStorage.setItem('seaBeanUpdateSeen', 'true');
-                }
-            } else {
-                document.getElementById('startupOverlay').classList.add('show');
-            }
         });
 
-        window.triggerThemeWave = function(themeKey, clickedBtn) {
-            if ((themeKey === currentThemeKey && clickedBtn) || isThemeAnimating) return;
-            const theme = themes[themeKey];
-            if (!theme) return;
-
-            if (ultraFastMode) {
-                applyThemeStyles(theme);
-                localStorage.setItem("selectedTheme", themeKey);
-                currentThemeKey = themeKey;
-                document.querySelectorAll('#themeGridContainer .theme-preview-btn').forEach(b => b.classList.remove('active'));
-                if (clickedBtn) clickedBtn.classList.add('active');
-                return;
-            }
-
-            isThemeAnimating = true;
-            document.querySelectorAll('#themeGridContainer .theme-preview-btn').forEach(b => b.classList.remove('active'));
-            if(clickedBtn) {
-                clickedBtn.classList.add('active');
-            } else {
-                const buttons = document.querySelectorAll('#themeGridContainer .theme-preview-btn');
-                const index = Object.keys(themes).indexOf(themeKey);
-                if(buttons[index]) buttons[index].classList.add('active');
-            }
-
-            document.getElementById('settingsOverlay').classList.remove('show');
-            const waveFill = document.getElementById("themeWaveFill");
-            const parallaxGroup = document.getElementById("transitionWaveGroup");
-
-            waveFill.style.background = theme.bgDeep;
-            if (parallaxGroup) {
-                parallaxGroup.innerHTML = `
-                    <use href="#theme-gentle-wave" x="48" y="0" fill="${theme.accent}" opacity="0.5" />
-                    <use href="#theme-gentle-wave" x="48" y="3" fill="${theme.accent}" opacity="0.7" />
-                    <use href="#theme-gentle-wave" x="48" y="5" fill="${theme.dark}" opacity="0.9" />
-                    <use href="#theme-gentle-wave" x="48" y="7" fill="${theme.bgDeep}" />
-                `;
-            }
-
-            void waveFill.offsetWidth;
-            waveFill.classList.add('active');
-
-            setTimeout(() => {
-                applyThemeStyles(theme);
-                localStorage.setItem("selectedTheme", themeKey);
-                currentThemeKey = themeKey;
-
-                const iframe = document.getElementById("mainFrame");
-                if (!lowPerfMode && iframe && iframe.src) {
-                    iframe.style.opacity = '0';
-                    setTimeout(() => { iframe.src = iframe.src; iframe.onload = () => iframe.style.opacity = '1'; }, 50);
-                }
-
-                setTimeout(() => {
-                    waveFill.classList.remove('active');
-                    setTimeout(() => { isThemeAnimating = false; }, 800);
-                }, 400);
-            }, 800);
+        window.triggerThemeWave = function() {
+            applyThemeStyles(fixedTheme);
         };
-
-        function selectDevice(type, element) {
-            document.querySelectorAll('.device-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            document.getElementById('deviceSelection').value = type;
-        }
-
-        function finishStartup() {
-            const userName = document.getElementById('userName').value.trim();
-            const cloakSelect = document.getElementById('startupCloakSelect').value;
-            const deviceMode = document.getElementById('deviceSelection').value;
-            const themeKey = document.getElementById('startupSelectedTheme').value;
-
-            if (userName) { document.getElementById('brandTextDisplay').innerText = userName; localStorage.setItem('sb_name', userName); }
-            if (cloakSelect && window.setCloak) { window.setCloak(cloakSelect); document.getElementById('cloakSelect').value = cloakSelect; }
-            if (deviceMode === 'mobile') document.body.classList.add('mobile-mode');
-            else document.body.classList.remove('mobile-mode');
-
-            localStorage.setItem('sb_device', deviceMode);
-            localStorage.setItem('seaBeanStartupDone', 'true');
-            localStorage.setItem('seaBeanUpdateSeen', 'true');
-
-            document.getElementById('startupOverlay').classList.remove('show');
-            window.triggerThemeWave(themeKey);
-        }
 
         function handleSidebarHover(isEntering) {
             if (document.body.classList.contains('mobile-mode')) return;
@@ -900,7 +617,7 @@
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             if(element) element.classList.add('active');
 
-            const waveFill = document.getElementById("loaderWaveFill");
+            const blurOverlay = document.getElementById("loaderOverlay");
             const text = document.getElementById("loadingText");
             const iframe = document.getElementById("mainFrame");
 
@@ -911,8 +628,7 @@
                 return;
             }
 
-            void waveFill.offsetWidth;
-            waveFill.classList.add('active');
+            blurOverlay.classList.add('active');
             text.classList.add('active');
 
             const loaderDelay = lowPerfMode ? 120 : 1500;
@@ -925,7 +641,7 @@
                     iframe.src = url;
                     iframe.onload = () => { iframe.style.opacity = '1'; };
 
-                    waveFill.classList.remove('active');
+                    blurOverlay.classList.remove('active');
                     text.classList.remove('active');
 
                     setTimeout(() => { isPageLoading = false; }, unlockDelay);
@@ -933,7 +649,7 @@
             }, loaderDelay);
         }
 
-        function closeAnnouncement() { document.getElementById('themeAnnouncementOverlay').classList.remove('show'); }
+        function closeAnnouncement() {}
         function closeAd() { document.getElementById('ad-container').classList.add('slide-out'); }
 
         function toggleMasterAds(checkbox) {
